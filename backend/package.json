@@ -1,0 +1,9 @@
+{
+  "name": "apna-downloader-backend",
+  "version": "1.0.0",
+  "description": "Serverless Cloudflare Worker backend for Apna Downloader SaaS",
+  "main": "src/index.js",
+  "devDependencies": {
+    "wrangler": "^3.57.0"
+  }
+}

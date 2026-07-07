@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Apna Downloader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Theme initialization
+        (function() {
+            const theme = localStorage.getItem("theme") || "dark";
+            if (theme === "light") {
+                document.documentElement.classList.add("light-mode");
+            }
+        })();
+
+        // Theme toggle function
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.toggle("light-mode");
+            localStorage.setItem("theme", isLight ? "light" : "dark");
+            updateThemeIcons(isLight);
+        }
+
+        function updateThemeIcons(isLight) {
+            const sun = document.getElementById("theme-icon-sun");
+            const moon = document.getElementById("theme-icon-moon");
+            if (sun && moon) {
+                if (isLight) {
+                    sun.style.display = "inline-block";
+                    moon.style.display = "none";
+                } else {
+                    sun.style.display = "none";
+                    moon.style.display = "inline-block";
+                }
+            }
+        }
+
+        // Initialize icons on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            const isLight = document.documentElement.classList.contains("light-mode");
+            updateThemeIcons(isLight);
+        });
+    </script>
+    <style>
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            font-size: 14px;
+        }
+        .info-row span:first-child {
+            color: var(--text-muted);
+        }
+        .info-row span:last-child {
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge.success {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success-color);
+        }
+        .badge.warning {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning-color);
+        }
+        .badge.danger {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger-color);
+        }
+        .btn-unbind {
+            padding: 6px 12px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-unbind:hover {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(11, 15, 25, 0.85);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 90% !important;
+                padding: 20px !important;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Apna Downloader
+            </a>
+            <nav>
+                <a href="index.html">Features</a>
+                <a href="index.html#pricing">Pricing</a>
+                <a href="#" class="active">Customer Portal</a>
+            </nav>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none; transition: all 0.2s;" title="Toggle Light/Dark Theme">
+                    <i class="fa-solid fa-sun" id="theme-icon-sun" style="display: none; font-size: 14px;"></i>
+                    <i class="fa-solid fa-moon" id="theme-icon-moon" style="font-size: 14px;"></i>
+                </button>
+                <div id="user-display" style="font-size: 13px; font-weight: 600; display: none;">
+                    <i class="fa-solid fa-user"></i> <span id="user-email-header">user@example.com</span>
+                    <a href="#" onclick="handleLogout()" style="color: var(--danger-color); margin-left: 15px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 130px; max-width: 1000px;">
+        <!-- Auth section if not logged in -->
+        <div id="auth-section" class="card-glass" style="max-width: 400px; margin: 0 auto; text-align: center;">
+            <i class="fa-solid fa-circle-user" style="font-size: 48px; color: var(--accent-color); margin-bottom: 20px;"></i>
+            <h2 id="auth-title" style="margin-bottom: 8px;">Customer Portal</h2>
+            <p id="auth-subtitle" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Sign in to unbind hardware devices and view subscription statuses.</p>
+            
+            <div id="auth-error" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: var(--danger-color); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; display: none; text-align: left;"></div>
+            <div id="auth-success" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: var(--success-color); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; display: none; text-align: left;"></div>
+
+            <!-- Portal Login Form -->
+            <div id="login-container">
+                <form id="portal-login-form" onsubmit="handleLoginSubmit(event)">
+                    <input type="email" id="email" class="form-input" placeholder="Email Address" required>
+                    <input type="password" id="password" class="form-input" placeholder="Password" required>
+                    <div style="text-align: right; margin-bottom: 15px;">
+                        <a href="#" onclick="showResetStep1(event)" style="font-size: 12px; color: var(--accent-color); text-decoration: none;">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="btn-submit" style="margin-top: 10px;">Sign In</button>
+                </form>
+
+                <div style="display: flex; align-items: center; margin: 16px 0; font-size: 11px; color: var(--text-muted); gap: 10px;">
+                    <hr style="flex: 1; border: none; border-top: 1px solid var(--border-color);">
+                    <span>OR</span>
+                    <hr style="flex: 1; border: none; border-top: 1px solid var(--border-color);">
+                </div>
+
+                <button type="button" onclick="loginWithGoogle()" class="btn-submit" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: var(--text-main); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
+                    <i class="fa-brands fa-google" style="color: #ea4335;"></i>
+                    <span>Continue with Google</span>
+                </button>
+            </div>
+
+            <!-- Reset Step 1 Form: Request Code -->
+            <div id="reset-step-1-container" style="display: none;">
+                <form id="reset-request-form" onsubmit="handleResetRequestSubmit(event)">
+                    <input type="email" id="reset-email" class="form-input" placeholder="Registered Email Address" required>
+                    <button type="submit" id="btn-send-reset-otp" class="btn-submit" style="margin-top: 15px;">Send Reset Code</button>
+                    <a href="#" onclick="showLogin(event)" style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 15px;">Back to Sign In</a>
+                </form>
+            </div>
+
+            <!-- Reset Step 2 Form: Verify Code & Change Password -->
+            <div id="reset-step-2-container" style="display: none;">
+                <form id="reset-verify-form" onsubmit="handleResetVerifySubmit(event)">
+                    <p style="font-size: 12px; color: var(--success-color); margin-bottom: 12px;"><i class="fa-solid fa-circle-check"></i> Verification code requested! Check your email inbox.</p>
+                    <input type="text" id="reset-code" class="form-input" placeholder="6-Digit Reset Code" required maxlength="6" style="text-align: center; font-size: 18px; letter-spacing: 2px; font-weight: 700;">
+                    <input type="password" id="reset-new-password" class="form-input" placeholder="Choose New Password" required style="margin-top: 10px;">
+                    <button type="submit" id="btn-confirm-reset" class="btn-submit" style="margin-top: 15px; background: linear-gradient(135deg, var(--accent-color) 0%, #2563eb 100%);">Reset Password</button>
+                    <a href="#" onclick="showResetStep1(event)" style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 15px;">Request a new code</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard view if logged in -->
+        <div id="dashboard-section" style="display: none;">
+            <div class="section-title" style="text-align: left; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h2>Welcome, <span id="dashboard-user-name" style="color: var(--accent-color);">User</span>!</h2>
+                    <p>Manage your license slots, active devices, and subscriptions.</p>
+                </div>
+                <!-- Portal Tabs -->
+                <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <button id="portal-tab-devices" class="action-btn active" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchPortalTab('devices')">
+                        <i class="fa-solid fa-microchip"></i> Device Slots
+                    </button>
+                    <button id="portal-tab-upgrade" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchPortalTab('upgrade')">
+                        <i class="fa-solid fa-credit-card"></i> Upgrade License
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page 1: Devices Slots Management -->
+            <div id="portal-page-devices" class="portal-grid">
+                <!-- Subscription Details Sidebar -->
+                <div class="card-glass">
+                    <h3 style="font-size: 16px; margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Subscription Overview</h3>
+                    <div class="info-row">
+                        <span>Plan Type</span>
+                        <span id="plan-type-badge" class="badge warning">Trial</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Status</span>
+                        <span id="status-badge" class="badge success">Active</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Allocated Slots</span>
+                        <span id="device-slots-allocated">1 PC</span>
+                    </div>
+                    <div class="info-row">
+                        <span>License Key</span>
+                        <span id="license-key-display" style="font-family: monospace; color: var(--accent-color);">N/A</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Expiry Date</span>
+                        <span id="expiry-date-label">-</span>
+                    </div>
+                </div>
+
+                <!-- Active Hardware Devices Manager -->
+                <div class="card-glass">
+                    <h3 style="font-size: 16px; margin-bottom: 10px; font-weight: 700;">Authorized Hardware IDs</h3>
+                    <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 20px;">If you upgraded your computer or reinstalled Windows, unbind your slot here to let your new device log in.</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Device Slot Index</th>
+                                <th>Hardware Identification Key</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="devices-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page 2: Upgrade Subscription & Payments -->
+            <div id="portal-page-upgrade" style="display: none; margin-top: 20px;">
+                <div class="portal-grid" style="grid-template-columns: 1fr 1.5fr;">
+                    <!-- Left Column: Choose Package -->
+                    <div class="card-glass" style="padding: 25px;">
+                        <h3 style="font-size: 16px; margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Select Premium Plan</h3>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Billing Frequency</label>
+                            <select id="upgrade-billing-term" class="form-select" onchange="loadUpgradePrices()">
+                                <option value="monthly">Monthly Subscription</option>
+                                <option value="yearly">Yearly Subscription</option>
+                                <option value="lifetime">Lifetime License</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Choose PC License Slot(s)</label>
+                            <div id="upgrade-plans-list" style="display: flex; flex-direction: column; gap: 10px;">
+                                <!-- Dynamic pricing radio slots loaded in portal.js -->
+                            </div>
+                        </div>
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); padding: 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; display: none;" id="portal-user-discount-banner">
+                            <i class="fa-solid fa-gift"></i> Custom discount applied to your account!
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Payment Instructions & Transaction ID submission -->
+                    <div class="card-glass" style="padding: 25px;">
+                        <h3 style="font-size: 16px; margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Local Transfer Instructions</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <!-- EasyPaisa detail card -->
+                            <div class="card-glass" style="padding: 12px 15px; background: rgba(0,0,0,0.15); border-color: rgba(37, 211, 102, 0.2);">
+                                <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #25d366; margin-bottom: 8px;">
+                                    <i class="fa-solid fa-mobile-screen-button"></i> EasyPaisa Wallet
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Account Title:</div>
+                                <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Miraj Ahmed</div>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Mobile Number:</div>
+                                <div style="font-size: 14px; font-weight: 700; color: var(--accent-color); font-family: monospace;">03332876228</div>
+                                <div style="font-size: 9px; color: var(--text-muted); margin-top: 6px; word-break: break-all; line-height: 1.2;">IBAN: PK48TMFB0000000073254067</div>
+                                <button type="button" class="btn-unbind" style="margin-top: 10px; width: 100%; border-color: rgba(37, 211, 102, 0.4); color: #25d366; background: rgba(37, 211, 102, 0.1);" onclick="openQRModal('easypaisa')">
+                                    <i class="fa-solid fa-qrcode"></i> View QR Code
+                                </button>
+                            </div>
+                            <!-- NayaPay detail card -->
+                            <div class="card-glass" style="padding: 12px 15px; background: rgba(0,0,0,0.15); border-color: rgba(59, 130, 246, 0.2); display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--accent-color); margin-bottom: 8px;">
+                                        <i class="fa-solid fa-wallet"></i> NayaPay / Raast
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Account Title:</div>
+                                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Mairaj Ahmed</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Nayapay Number:</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: var(--accent-color); font-family: monospace;">03332876228</div>
+                                    <div style="font-size: 9px; color: var(--text-muted); margin-top: 6px; word-break: break-all; line-height: 1.2;">Raast ID: PK71NAYA1234503332876228</div>
+                                </div>
+                                <button type="button" class="btn-unbind" style="margin-top: 10px; width: 100%; border-color: rgba(59, 130, 246, 0.4); color: var(--accent-color); background: rgba(59, 130, 246, 0.1);" onclick="openQRModal('nayapay')">
+                                    <i class="fa-solid fa-qrcode"></i> View QR Code
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Verification Submit Form -->
+                        <form id="payment-claim-form" onsubmit="handleClaimSubmit(event)">
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Total Amount Paid (PKR)</label>
+                                <input type="text" id="claim-display-amount" class="form-input" style="font-weight: 700; color: var(--success-color); background: rgba(0,0,0,0.25);" readonly>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">11-Digit Transaction ID (TID / Trx ID)</label>
+                                <input type="text" id="claim-trx-id" class="form-input" placeholder="Enter transaction reference number" required style="font-family: monospace;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Upload Receipt Screenshot (Optional)</label>
+                                <input type="file" id="claim-receipt-file" class="form-input" accept="image/*" style="font-size: 12px; padding: 8px;" onchange="handleReceiptFileChange(event)">
+                                <input type="hidden" id="claim-receipt-base64">
+                            </div>
+                            <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);"><i class="fa-solid fa-circle-check"></i> Submit Claim for Verification</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Bottom ledger showing past verification requests -->
+                <div class="card-glass" style="margin-top: 30px; padding: 25px;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Verification History Ledger</h3>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Submission Date</th>
+                                    <th>Selected Package</th>
+                                    <th>Paid Amount</th>
+                                    <th>Transaction ID</th>
+                                    <th>Claim Status</th>
+                                    <th>Verification Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="claims-table-body">
+                                <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No payment claims submitted yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View QR Code Modal Popup -->
+    <div id="view-qr-modal" class="modal" onclick="closeQRModal()">
+        <div class="modal-content" style="max-width: 380px; text-align: center; padding: 25px; position: relative;" onclick="event.stopPropagation()">
+            <!-- Close cross button at top right -->
+            <button type="button" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; transition: color 0.2s;" onclick="closeQRModal()" onmouseover="this.style.color='var(--danger-color)'" onmouseout="this.style.color='var(--text-muted)'">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="qr-modal-title" style="font-size: 16px; margin-bottom: 8px; font-weight: 700;">Account QR Code</h3>
+            <p id="qr-modal-subtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">Scan this QR code in your EasyPaisa / NayaPay app to transfer instantly.</p>
+            
+            <div style="background: white; padding: 10px; border-radius: 8px; display: inline-block; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); max-width: 100%;">
+                <img id="qr-modal-img" src="" alt="QR Code" style="max-width: 280px; max-height: 380px; display: block; object-fit: contain; margin: 0 auto; border-radius: 4px;">
+            </div>
+            
+            <div>
+                <button type="button" class="btn-pricing" style="width: 100%; padding: 10px; border-radius: 6px; font-weight: 600;" onclick="closeQRModal()"><i class="fa-solid fa-circle-xmark"></i> Close QR Preview</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="portal.js"></script>
+</body>
+</html>

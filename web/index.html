@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apna Downloader - SaaS Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Theme initialization
+        (function() {
+            const theme = localStorage.getItem("theme") || "dark";
+            if (theme === "light") {
+                document.documentElement.classList.add("light-mode");
+            }
+        })();
+
+        // Theme toggle function
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.toggle("light-mode");
+            localStorage.setItem("theme", isLight ? "light" : "dark");
+            updateThemeIcons(isLight);
+        }
+
+        function updateThemeIcons(isLight) {
+            const sun = document.getElementById("theme-icon-sun");
+            const moon = document.getElementById("theme-icon-moon");
+            if (sun && moon) {
+                if (isLight) {
+                    sun.style.display = "inline-block";
+                    moon.style.display = "none";
+                } else {
+                    sun.style.display = "none";
+                    moon.style.display = "inline-block";
+                }
+            }
+        }
+
+        // Initialize icons on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            const isLight = document.documentElement.classList.contains("light-mode");
+            updateThemeIcons(isLight);
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Apna Downloader
+            </a>
+            <nav>
+                <a href="#hero-section" class="active">Home</a>
+                <a href="#features">Features</a>
+                <a href="#install-guide">Setup Guide</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#support-section">Support</a>
+                <a href="#contact-section">Contact Us</a>
+                <a href="portal.html">Portal</a>
+            </nav>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none; transition: all 0.2s;" title="Toggle Light/Dark Theme">
+                    <i class="fa-solid fa-sun" id="theme-icon-sun" style="display: none; font-size: 14px;"></i>
+                    <i class="fa-solid fa-moon" id="theme-icon-moon" style="font-size: 14px;"></i>
+                </button>
+                <a href="../dist/Apna Downloader Setup 1.0.0.exe" class="btn-nav" download>
+                    <i class="fa-solid fa-download"></i> Download App
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3D Glassmorphic Main Layout Container -->
+    <div class="container grid-glow" style="padding-top: 140px; display: flex; flex-direction: column; gap: 90px; max-width: 1100px; margin: 0 auto;">
+        
+        <!-- Hero Section -->
+        <section id="hero-section" style="scroll-margin-top: 160px; display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: space-between;">
+            <div style="flex: 1.2; min-width: 320px;">
+                <h1 style="font-size: 42px; line-height: 1.15; margin-bottom: 20px; font-weight: 800; letter-spacing: -1px;">
+                    Dynamic, Multithreaded <br>
+                    <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Speed Downloading</span>
+                </h1>
+                <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 30px; line-height: 1.7; max-width: 550px;">
+                    Experience up to 5x faster file transfers, YouTube playlist capturing, customizable dark/light theme options, and integrated download security protection. Try free for 15 days.
+                </p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <a href="../dist/Apna Downloader Setup 1.0.0.exe" class="btn-nav" style="padding: 14px 28px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 20px var(--accent-glow);" download>
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Start 15-Day Free Trial
+                    </a>
+                    <a href="#pricing" class="btn-pricing" style="width: auto; padding: 14px 28px; border-radius: 6px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;">
+                        View Plans (PKR)
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hero-graphic floating-3d" style="flex: 0.8; min-width: 280px; display: flex; justify-content: center;">
+                <!-- Glassmorphic Mockup UI with 3D Depth -->
+                <div class="card-glass card-3d" style="width: 100%; max-width: 400px; text-align: left; box-shadow: 25px 25px 50px rgba(0,0,0,0.35); padding: 25px; border-color: rgba(59, 130, 246, 0.2);">
+                    <div style="display: flex; gap: 6px; margin-bottom: 20px;">
+                        <div style="width: 11px; height: 11px; border-radius: 50%; background: var(--danger-color);"></div>
+                        <div style="width: 11px; height: 11px; border-radius: 50%; background: var(--warning-color);"></div>
+                        <div style="width: 11px; height: 11px; border-radius: 50%; background: var(--success-color);"></div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 12px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fa-solid fa-file-video" style="color: var(--accent-color); margin-right: 8px;"></i> Marvel_Trailer_1080p.mp4</span>
+                        <span style="color: var(--success-color); font-weight: 700;">84%</span>
+                    </div>
+                    <!-- Threads Splitting Graphic -->
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;">
+                        <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 3px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; left: 0; top: 0; height: 100%; width: 75%; background: var(--accent-gradient);"></div>
+                        </div>
+                        <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 3px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; left: 0; top: 0; height: 100%; width: 90%; background: var(--accent-gradient);"></div>
+                        </div>
+                        <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 3px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; left: 0; top: 0; height: 100%; width: 60%; background: var(--accent-gradient);"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
+                        <span>Speed: 42.8 MB/s (32 segments)</span>
+                        <span>Time Left: 2s</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section id="features" style="scroll-margin-top: 160px;">
+            <div style="text-align: center; margin-bottom: 45px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;">Why Apna Downloader?</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Designed for power users who demand lightning speed downloading.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+                <div class="card-glass card-3d" style="padding: 30px; text-align: left;">
+                    <div style="font-size: 28px; color: var(--accent-color); margin-bottom: 15px;"><i class="fa-solid fa-network-wired"></i></div>
+                    <h3 style="font-size: 16px; margin-bottom: 10px;">Dynamic Segmentation</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">Splits the download task dynamically into up to 32 segments, downloading them simultaneously to completely saturate your connection speed.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 30px; text-align: left;">
+                    <div style="font-size: 28px; color: var(--accent-color); margin-bottom: 15px;"><i class="fa-solid fa-circle-play"></i></div>
+                    <h3 style="font-size: 16px; margin-bottom: 10px;">YouTube Playlists Grabber</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">Paste any YouTube playlist URL. Our parser extracts metadata, lists qualities (1080p, 720p), and imports them into your download queue.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 30px; text-align: left;">
+                    <div style="font-size: 28px; color: var(--accent-color); margin-bottom: 15px;"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3 style="font-size: 16px; margin-bottom: 10px;">Automated Antivirus Scan</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">Protects your system by automatically scanning completed downloads with your Windows Defender or default local antivirus software.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Power-User Features Section -->
+        <section id="advanced-features" style="scroll-margin-top: 160px;">
+            <div style="text-align: center; margin-bottom: 45px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;">Advanced Desktop Capabilities</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Take full control of your download pipelines with premium built-in utilities.</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-list-check"></i> Gmail-Style Multi-Select</h4>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">Easily bulk-manage large file lists. Check multiple records to resume, pause, or physically delete files from your storage drives in a single click.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-gauge-high"></i> Quick Speed Limiter Widget</h4>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">Throttle bandwidth dynamically from the footer. A handy status bar toggle allows capping download rates instantly to prevent network lag on other devices.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-chart-line"></i> Bandwidth & Thread Analytics</h4>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">Open the Speed Analytics panel to monitor connection states. Includes rolling session charts, peak speed indicators, and visual active thread mappings.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-bell"></i> Audio Chime & Post-Download Actions</h4>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">Automate your workflow. Synthesize soft arpeggio completed chimes using HTML5 oscillators, trigger system notifications, or open finished files automatically.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-arrows-rotate"></i> One-Click Settings Restoration</h4>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">Experiment with custom configurations, folder trees, and segment limits. You can revert setting profiles back to clean default factory states with one click.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Setup Guide Section -->
+        <section id="install-guide" style="scroll-margin-top: 160px;">
+            <div style="text-align: center; margin-bottom: 45px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;">Setup & Installation Wizard</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Follow these simple steps to install, register, and activate your license.</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left; position: relative;">
+                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">01</div>
+                    <h3 style="font-size: 15px; margin-bottom: 8px;">Download Installer</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Get the setup executable block for Windows directly from our downloads page.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">02</div>
+                    <h3 style="font-size: 15px; margin-bottom: 8px;">Run Setup Wizard</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Double-click the installer icon. The client installs instantly and launches.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">03</div>
+                    <h3 style="font-size: 15px; margin-bottom: 8px;">Register Account</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Register inside the app via Google Sign-In or your manual email credentials.</p>
+                </div>
+                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
+                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">04</div>
+                    <h3 style="font-size: 15px; margin-bottom: 8px;">Activate Slots</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Activate your 15-day free trial or enter a license key to allocate device slots.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" style="scroll-margin-top: 160px;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;">Flexible Licensing Plans (PKR)</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Secure local checkouts and instant activation keys in Pakistani Rupees.</p>
+            </div>
+
+            <div class="pricing-tabs" style="margin-bottom: 40px;">
+                <button class="tab-btn active" onclick="switchBilling('monthly')">Monthly Plans</button>
+                <button class="tab-btn" onclick="switchBilling('yearly')">Yearly Plans</button>
+                <button class="tab-btn" onclick="switchBilling('lifetime')">Lifetime Licenses</button>
+            </div>
+
+            <!-- Dynamic pricing grid loaded via app.js -->
+            <div class="pricing-grid" id="pricing-grid-container">
+                <!-- Cards populated dynamically -->
+            </div>
+        </section>
+
+        <!-- Dedicated Support Center Section -->
+        <section id="support-section" style="scroll-margin-top: 160px;">
+            <div style="text-align: center; margin-bottom: 45px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;">Help & Support Center</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Frequently asked questions and guides about license management.</p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto;">
+                <div class="card-glass" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-circle-question"></i> How do I request a custom email discount?</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">Our administrators can issue special promotional campaign discounts for specific email addresses from the admin panel. Once configured, you will see a personalized gift icon and reduced checkout rates when logging into the portal!</p>
+                </div>
+                <div class="card-glass" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-circle-question"></i> What are PC License slots?</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">Each subscription has a device allocation limit (e.g. 1 PC, 2 PCs, 3 PCs). If you reach your limit, you can easily release/unbind old device IDs from your online Customer Portal to register a new laptop or computer.</p>
+                </div>
+                <div class="card-glass" style="padding: 25px; text-align: left;">
+                    <h4 style="font-size: 15px; color: var(--accent-color); margin-bottom: 10px;"><i class="fa-solid fa-circle-question"></i> Can I pay in local currency (Pakistani Rupees)?</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">Yes! All our packages are priced in Pakistani Rupees (PKR). We support local payments including Easypaisa, JazzCash, Nayapay, and bank transfers for instant manual checkout validations.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dedicated Contact Us Section -->
+        <section id="contact-section" style="scroll-margin-top: 160px;">
+            <div style="text-align: center; margin-bottom: 45px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;">Contact Us Desk</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Have questions, sales inquiries, or feedback? Get in touch with our team.</p>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 30px; align-items: stretch; justify-content: center; max-width: 1000px; margin: 0 auto;">
+                
+                <!-- Left Side: Interactive Contact Form -->
+                <div class="card-glass" style="padding: 30px; text-align: left; flex: 1.2; min-width: 320px;">
+                    <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-paper-plane" style="color: var(--accent-color);"></i> Send a Direct Message
+                    </h3>
+                    
+                    <div id="contact-success-toast" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); padding: 12px 18px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; display: none;">
+                        <i class="fa-solid fa-circle-check"></i> Thank you! Your message has been received. Our team will review and get back to you shortly.
+                    </div>
+                    
+                    <form id="contact-form" onsubmit="handleSupportSubmit(event)">
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Your Name</label>
+                            <input type="text" id="contact-name" class="form-input" placeholder="Enter name" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Email Address</label>
+                            <input type="email" id="contact-email" class="form-input" placeholder="name@domain.com" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Message Subject</label>
+                            <select id="contact-subject" class="form-select" required>
+                                <option value="license">License Key & Activation Issue</option>
+                                <option value="unbind">Device Slots Unbinding Support</option>
+                                <option value="download">Download Speed Splitting Help</option>
+                                <option value="other">General Feedback / Sales Questions</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Your Message</label>
+                            <textarea id="contact-message" class="form-input" style="height: 120px; resize: vertical;" placeholder="Type details here..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit" style="width: 100%; font-size: 13px; padding: 12px;"><i class="fa-solid fa-paper-plane"></i> Submit Inquiry</button>
+                    </form>
+                </div>
+
+                <!-- Right Side: Social Media & Direct Contacts Card -->
+                <div class="card-glass card-3d" style="padding: 30px; text-align: left; flex: 0.8; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(59, 130, 246, 0.2);">
+                    <div>
+                        <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-address-book" style="color: var(--accent-color);"></i> Direct Contacts
+                        </h3>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 25px;">You can directly connect with our founder and lead developer for corporate inquiries, custom software versions, or high-priority license activations.</p>
+                        
+                        <!-- Contact Links list -->
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            <a href="mailto:mirajroonjha@gmail.com" class="card-glass" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(0,0,0,0.15); transition: background 0.2s;">
+                                <i class="fa-solid fa-envelope" style="font-size: 16px; color: #ea4335;"></i> mirajroonjha@gmail.com
+                            </a>
+                            <a href="https://wa.me/923001234567" target="_blank" class="card-glass" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(0,0,0,0.15); transition: background 0.2s;">
+                                <i class="fa-brands fa-whatsapp" style="font-size: 18px; color: #25d366;"></i> WhatsApp Support
+                            </a>
+                            <a href="https://facebook.com/mirajroonjha" target="_blank" class="card-glass" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(0,0,0,0.15); transition: background 0.2s;">
+                                <i class="fa-brands fa-facebook" style="font-size: 18px; color: #1877f2;"></i> Facebook Profile
+                            </a>
+                            <a href="https://instagram.com/mirajroonjha" target="_blank" class="card-glass" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(0,0,0,0.15); transition: background 0.2s;">
+                                <i class="fa-brands fa-instagram" style="font-size: 18px; color: #e1306c;"></i> Instagram Profile
+                            </a>
+                            <a href="https://linkedin.com/in/mirajroonjha" target="_blank" class="card-glass" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(0,0,0,0.15); transition: background 0.2s;">
+                                <i class="fa-brands fa-linkedin" style="font-size: 18px; color: #0077b5;"></i> LinkedIn Profile
+                            </a>
+                        </div>
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; text-align: center;">
+                        <i class="fa-solid fa-clock"></i> Active Response: Mon-Sat, 9AM - 9PM (PKT)
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <footer style="margin-top: 80px;">
+        <p>&copy; 2026 Apna Downloader. Built with edge performance backend database systems.</p>
+    </footer>
+
+    <!-- Active Highlighting Script and Interactive Form handling -->
+    <script src="app.js"></script>
+    <script>
+        // Interactive support form submission simulation
+        function handleSupportSubmit(event) {
+            event.preventDefault();
+            const successToast = document.getElementById("contact-success-toast");
+            const form = document.getElementById("contact-form");
+            
+            // Show toast message
+            successToast.style.display = "block";
+            form.reset();
+            
+            // Scroll to toast container
+            successToast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Hide toast after 8 seconds
+            setTimeout(() => {
+                successToast.style.display = "none";
+            }, 8000);
+        }
+
+        // Active class nav link scroll highlighting
+        document.addEventListener("DOMContentLoaded", () => {
+            const navLinks = document.querySelectorAll("header nav a");
+            const sections = document.querySelectorAll("section[id]");
+
+            function activateLink() {
+                let scrollPos = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+                
+                sections.forEach(sec => {
+                    const top = sec.offsetTop - 180;
+                    const height = sec.offsetHeight;
+                    const id = sec.getAttribute("id");
+                    
+                    if (scrollPos >= top && scrollPos < top + height) {
+                        navLinks.forEach(link => {
+                            link.classList.remove("active");
+                            if (link.getAttribute("href") === `#${id}`) {
+                                link.classList.add("active");
+                            }
+                        });
+                    }
+                });
+            }
+
+            window.addEventListener("scroll", activateLink);
+            activateLink();
+        });
+    </script>
+</body>
+</html>

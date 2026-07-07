@@ -1,0 +1,588 @@
+#apna-grabber-btn {
+    position: absolute !important;
+    z-index: 2147483647 !important; /* Force to show on top of everything, including fullscreen video players */
+    display: inline-flex !important;
+    align-items: center !important;
+    background: linear-gradient(to bottom, #fbfcfd 0%, #eef3f9 35%, #dce6f3 50%, #c5d7ed 70%, #d8e5f5 100%) !important;
+    color: #333333 !important;
+    border-top: 1.5px solid #ffffff !important;
+    border-left: 1.5px solid #ffffff !important;
+    border-right: 1.5px solid #7a90a4 !important;
+    border-bottom: 1.5px solid #7a90a4 !important;
+    outline: 1px solid #4a5c6e !important;
+    border-radius: 4px !important;
+    padding: 1px 3px 1px 1px !important;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: default !important;
+    box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.25) !important;
+    transition: opacity 0.2s, transform 0.2s !important;
+    pointer-events: auto !important;
+}
+
+#apna-grabber-btn:hover {
+    /* Stable IDM-like feel without scaling jitter */
+    filter: brightness(1.02) !important;
+}
+
+.apna-btn-main {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 3px 6px 3px 6px !important;
+    border-radius: 3px 0 0 3px !important;
+    cursor: pointer !important;
+}
+
+.apna-btn-main span {
+    color: #e62200 !important;
+    font-weight: bold !important;
+    text-shadow: 0.5px 0.5px 0px #ffffff !important;
+}
+
+.apna-btn-main:hover {
+    background-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.apna-btn-arrow,
+.apna-btn-help,
+.apna-btn-close {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 19px !important;
+    height: 19px !important;
+    margin: 1px !important;
+    background: linear-gradient(to bottom, #ffffff 0%, #e2e8f0 40%, #cbd5e1 100%) !important;
+    border-top: 1.5px solid #ffffff !important;
+    border-left: 1.5px solid #ffffff !important;
+    border-right: 1.5px solid #8095a8 !important;
+    border-bottom: 1.5px solid #8095a8 !important;
+    border-radius: 2px !important;
+    box-sizing: border-box !important;
+    color: #333333 !important;
+    font-family: "Segoe UI", -apple-system, sans-serif !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    user-select: none !important;
+}
+
+.apna-btn-arrow svg {
+    fill: #333333 !important;
+    filter: none !important;
+}
+
+.apna-btn-arrow:hover,
+.apna-btn-help:hover {
+    background: linear-gradient(to bottom, #ffffff 0%, #edf2f7 45%, #cbd5e1 100%) !important;
+    filter: brightness(1.03) !important;
+}
+
+.apna-btn-arrow:active,
+.apna-btn-help:active {
+    border-top: 1.5px solid #8095a8 !important;
+    border-left: 1.5px solid #8095a8 !important;
+    border-right: 1.5px solid #ffffff !important;
+    border-bottom: 1.5px solid #ffffff !important;
+    padding-top: 1px !important;
+    padding-left: 1px !important;
+}
+
+.apna-btn-close {
+    font-size: 14px !important;
+    line-height: 1 !important;
+}
+
+.apna-btn-close:hover {
+    background: #ef4444 !important;
+    border-top: 1.5px solid #fca5a5 !important;
+    border-left: 1.5px solid #fca5a5 !important;
+    border-right: 1.5px solid #991b1b !important;
+    border-bottom: 1.5px solid #991b1b !important;
+    color: #ffffff !important;
+}
+
+.apna-btn-close:active {
+    border-top: 1.5px solid #991b1b !important;
+    border-left: 1.5px solid #991b1b !important;
+    border-right: 1.5px solid #fca5a5 !important;
+    border-bottom: 1.5px solid #fca5a5 !important;
+    padding-top: 1px !important;
+    padding-left: 1px !important;
+}
+
+#apna-grabber-btn svg {
+    margin: 0 !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+}
+
+/* Visibility transition classes */
+.apna-grabber-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+}
+
+.apna-grabber-hidden {
+    opacity: 0 !important;
+    transform: translateY(-8px) !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* DROPDOWN MENU */
+#apna-grabber-dropdown {
+    position: absolute !important;
+    z-index: 2147483647 !important;
+    background-color: rgba(17, 24, 39, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: 6px 0 !important;
+    width: 230px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+.apna-dropdown-hidden {
+    display: none !important;
+    opacity: 0 !important;
+    transform: translateY(-4px) !important;
+    pointer-events: none !important;
+}
+
+.apna-dropdown-visible {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+}
+
+.apna-dropdown-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 8px 16px !important;
+    color: #e5e7eb !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s, color 0.15s !important;
+    text-align: left !important;
+    width: 100% !important;
+}
+
+.apna-dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+}
+
+.option-icon {
+    font-size: 13px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 16px !important;
+}
+
+.apna-dropdown-divider {
+    height: 1px !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    margin: 6px 0 !important;
+}
+
+/* ==========================================================================
+   EXTENSION FLOATING GRABBER THEME OVERRIDES
+   ========================================================================== */
+
+/* 1. Classic Light / Bright IDM Style */
+#apna-grabber-btn.theme-light {
+    background: linear-gradient(to bottom, #fbfcfd 0%, #eef3f9 35%, #dce6f3 50%, #c5d7ed 70%, #d8e5f5 100%) !important;
+    border-top: 1.5px solid #ffffff !important;
+    border-left: 1.5px solid #ffffff !important;
+    border-right: 1.5px solid #7a90a4 !important;
+    border-bottom: 1.5px solid #7a90a4 !important;
+    outline: 1px solid #4a5c6e !important;
+}
+
+#apna-grabber-btn.theme-light .apna-btn-main span {
+    color: #e62200 !important;
+    text-shadow: 0.5px 0.5px 0px #ffffff !important;
+}
+
+#apna-grabber-btn.theme-light .apna-btn-arrow,
+#apna-grabber-btn.theme-light .apna-btn-help,
+#apna-grabber-btn.theme-light .apna-btn-close {
+    background: linear-gradient(to bottom, #ffffff 0%, #e2e8f0 40%, #cbd5e1 100%) !important;
+    border-top: 1.5px solid #ffffff !important;
+    border-left: 1.5px solid #ffffff !important;
+    border-right: 1.5px solid #8095a8 !important;
+    border-bottom: 1.5px solid #8095a8 !important;
+    color: #333333 !important;
+}
+
+#apna-grabber-btn.theme-light .apna-btn-arrow svg {
+    fill: #333333 !important;
+}
+
+/* 2. Dark Retro IDM Style */
+#apna-grabber-btn.theme-dark {
+    background: linear-gradient(to bottom, #2d3748 0%, #1e293b 50%, #0f172a 100%) !important;
+    border-top: 1.5px solid #475569 !important;
+    border-left: 1.5px solid #475569 !important;
+    border-right: 1.5px solid #0f172a !important;
+    border-bottom: 1.5px solid #0f172a !important;
+    outline: 1px solid #020617 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+#apna-grabber-btn.theme-dark .apna-btn-main span {
+    color: #ef4444 !important; /* Brighter red for dark mode */
+    text-shadow: 0.5px 0.5px 0px #000000 !important;
+}
+
+#apna-grabber-btn.theme-dark .apna-btn-arrow,
+#apna-grabber-btn.theme-dark .apna-btn-help,
+#apna-grabber-btn.theme-dark .apna-btn-close {
+    background: linear-gradient(to bottom, #334155 0%, #1e293b 50%, #0f172a 100%) !important;
+    border-top: 1.5px solid #475569 !important;
+    border-left: 1.5px solid #475569 !important;
+    border-right: 1.5px solid #020617 !important;
+    border-bottom: 1.5px solid #020617 !important;
+    color: #cbd5e1 !important;
+}
+
+#apna-grabber-btn.theme-dark .apna-btn-arrow svg {
+    fill: #cbd5e1 !important;
+}
+
+#apna-grabber-btn.theme-dark .apna-btn-arrow:hover,
+#apna-grabber-btn.theme-dark .apna-btn-help:hover {
+    background: linear-gradient(to bottom, #475569 0%, #334155 50%, #1e293b 100%) !important;
+}
+
+#apna-grabber-btn.theme-dark .apna-btn-arrow:active,
+#apna-grabber-btn.theme-dark .apna-btn-help:active {
+    border-top: 1.5px solid #020617 !important;
+    border-left: 1.5px solid #020617 !important;
+    border-right: 1.5px solid #475569 !important;
+    border-bottom: 1.5px solid #475569 !important;
+}
+
+#apna-grabber-btn.theme-dark .apna-btn-close:hover {
+    background: #ef4444 !important;
+    border-top: 1.5px solid #fca5a5 !important;
+    border-left: 1.5px solid #fca5a5 !important;
+    border-right: 1.5px solid #991b1b !important;
+    border-bottom: 1.5px solid #991b1b !important;
+    color: #ffffff !important;
+}
+
+#apna-grabber-btn.theme-dark .apna-btn-close:active {
+    border-top: 1.5px solid #991b1b !important;
+    border-left: 1.5px solid #991b1b !important;
+    border-right: 1.5px solid #fca5a5 !important;
+    border-bottom: 1.5px solid #fca5a5 !important;
+}
+
+/* 3. Glassmorphic Retro IDM Style */
+#apna-grabber-btn.theme-glass {
+    background: rgba(30, 41, 59, 0.65) !important;
+    border-top: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    border-left: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    border-right: 1.5px solid rgba(0, 0, 0, 0.4) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.4) !important;
+    outline: 1px solid rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+#apna-grabber-btn.theme-glass .apna-btn-main span {
+    color: #ef4444 !important;
+    text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.5) !important;
+}
+
+#apna-grabber-btn.theme-glass .apna-btn-arrow,
+#apna-grabber-btn.theme-glass .apna-btn-help,
+#apna-grabber-btn.theme-glass .apna-btn-close {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-top: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    border-left: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    border-right: 1.5px solid rgba(0, 0, 0, 0.3) !important;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.3) !important;
+    color: #f1f5f9 !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+#apna-grabber-btn.theme-glass .apna-btn-arrow svg {
+    fill: #f1f5f9 !important;
+}
+
+#apna-grabber-btn.theme-glass .apna-btn-arrow:hover,
+#apna-grabber-btn.theme-glass .apna-btn-help:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+#apna-grabber-btn.theme-glass .apna-btn-arrow:active,
+#apna-grabber-btn.theme-glass .apna-btn-help:active {
+    border-top: 1.5px solid rgba(0, 0, 0, 0.3) !important;
+    border-left: 1.5px solid rgba(0, 0, 0, 0.3) !important;
+    border-right: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+#apna-grabber-btn.theme-glass .apna-btn-close:hover {
+    background: rgba(239, 68, 68, 0.8) !important;
+    border-top: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+    border-left: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+    border-right: 1.5px solid rgba(153, 27, 27, 0.8) !important;
+    border-bottom: 1.5px solid rgba(153, 27, 27, 0.8) !important;
+}
+
+#apna-grabber-dropdown.theme-light {
+    background-color: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
+}
+
+#apna-grabber-dropdown.theme-light .apna-dropdown-item {
+    color: #334155 !important;
+}
+
+#apna-grabber-dropdown.theme-light .apna-dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    color: #e62200 !important;
+}
+
+#apna-grabber-dropdown.theme-light .apna-dropdown-divider {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+#apna-grabber-dropdown.theme-glass {
+    background-color: rgba(15, 23, 42, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* Mass grabber dialog overlay styles */
+#apna-mass-grabber-dialog {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2147483647 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-modal {
+    position: relative !important;
+    width: 600px !important;
+    max-width: 90% !important;
+    height: 500px !important;
+    max-height: 90vh !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    color: #f8fafc !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 16px 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(30, 41, 59, 0.5) !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-close {
+    font-size: 24px !important;
+    cursor: pointer !important;
+    color: #94a3b8 !important;
+    line-height: 1 !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-close:hover {
+    color: #f8fafc !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-filters {
+    display: flex !important;
+    gap: 8px !important;
+    padding: 12px 20px !important;
+    background: rgba(15, 23, 42, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    flex-wrap: wrap !important;
+}
+
+#apna-mass-grabber-dialog .apna-filter-chip {
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    background: #334155 !important;
+    color: #94a3b8 !important;
+    border-radius: 20px !important;
+    cursor: pointer !important;
+    border: 1px solid transparent !important;
+    user-select: none !important;
+}
+
+#apna-mass-grabber-dialog .apna-filter-chip:hover {
+    color: #f8fafc !important;
+    background: #475569 !important;
+}
+
+#apna-mass-grabber-dialog .apna-filter-chip.active {
+    background: #e62200 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-list-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+    font-size: 12px !important;
+    color: #94a3b8 !important;
+    background: rgba(15, 23, 42, 0.4) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-list-header label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 10px 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-item {
+    display: flex !important;
+    align-items: flex-start !important;
+    padding: 10px 12px !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 6px !important;
+    transition: background 0.15s !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-item:hover {
+    background: #334155 !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-item label {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    cursor: pointer !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-item input[type="checkbox"] {
+    margin-top: 4px !important;
+    cursor: pointer !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-item-details {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-item-text {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #f8fafc !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-item-url {
+    font-size: 11px !important;
+    color: #64748b !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-footer {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+    padding: 16px 20px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(30, 41, 59, 0.5) !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-footer button {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    border: none !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-btn-cancel {
+    background: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-btn-cancel:hover {
+    background: #475569 !important;
+    color: #f8fafc !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-btn-download {
+    background: #e62200 !important;
+    color: #ffffff !important;
+}
+
+#apna-mass-grabber-dialog .apna-mass-btn-download:hover {
+    background: #ff2900 !important;
+}

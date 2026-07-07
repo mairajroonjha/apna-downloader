@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Progress</title>
+    <link rel="stylesheet" href="progress.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="progress-dialog">
+        <!-- Title & Status Header -->
+        <div class="header">
+            <h1 id="file-title">File Name</h1>
+            <span id="status-text" class="status-badge downloading">STATUS: DOWNLOADING</span>
+        </div>
+
+        <!-- Main Stats Card (with circular progress inside) -->
+        <div class="stats-card">
+            <!-- Left Column -->
+            <div class="stats-col">
+                <div class="stat-item">
+                    <span class="stat-label">FILE SIZE:</span>
+                    <span class="stat-value" id="info-size">Checking...</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">TRANSFER RATE:</span>
+                    <span class="stat-value" id="info-speed">0 KB/s</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">RESUME SUPPORT:</span>
+                    <span class="stat-value" id="info-resume">Checking...</span>
+                </div>
+            </div>
+
+            <!-- Center Column: Circular Progress -->
+            <div class="circle-container">
+                <div class="circle-progress-wrapper">
+                    <svg class="circle-progress-svg" width="90" height="90" viewBox="0 0 100 100">
+                        <circle class="circle-bg" cx="50" cy="50" r="42" stroke="#e2e8f0" stroke-width="7" fill="none" />
+                        <circle class="circle-fill" id="overall-circle-fill" cx="50" cy="50" r="42" stroke="#2563eb" stroke-width="7" fill="none" 
+                                stroke-linecap="round" stroke-dasharray="263.89" stroke-dashoffset="263.89" transform="rotate(-90 50 50)" />
+                    </svg>
+                    <div class="circle-percentage" id="overall-percentage">0%</div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="stats-col align-right">
+                <div class="stat-item">
+                    <span class="stat-label">DOWNLOADED:</span>
+                    <span class="stat-value" id="info-downloaded">0 Bytes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">TIME LEFT:</span>
+                    <span class="stat-value" id="info-time">Unknown</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">RESUME SUPPORT:</span>
+                    <span class="stat-value" id="info-resume-2">Checking...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden overall-bar to satisfy existing JS queries -->
+        <div id="overall-bar" style="display: none; width: 0%;"></div>
+
+        <!-- Collapsible Segment Block Grid -->
+        <div class="segment-grid-container collapsed" id="segment-container">
+            <div class="section-header" id="segment-header">
+                <h3>FILE DOWNLOAD SEGMENTS MAP</h3>
+                <div class="header-right">
+                    <span class="badge" id="segment-badge">[100 segments] COLLAPSED</span>
+                    <i class="fa-solid fa-chevron-right toggle-icon" id="segment-toggle-icon"></i>
+                    <i class="fa-solid fa-eye-slash hide-card-icon" id="btn-hide-segments" style="margin-left: 10px; cursor: pointer;" title="Hide this section permanently"></i>
+                </div>
+            </div>
+            <div class="segment-grid" id="segment-grid" style="display: none;">
+                <!-- Dynamically populated blocks -->
+            </div>
+        </div>
+
+        <!-- Collapsible Connection Threads Map -->
+        <div class="threads-container collapsed" id="threads-container">
+            <div class="section-header" id="threads-header">
+                <h3>CONNECTION THREADS ACTIVITY</h3>
+                <div class="header-right">
+                    <span class="status-indicator active"><i class="fa-solid fa-circle-check"></i> active</span>
+                    <span class="status-indicator error"><i class="fa-solid fa-circle-exclamation"></i> error</span>
+                    <span class="badge" id="threads-badge">[8 Active Threads] COLLAPSED</span>
+                    <i class="fa-solid fa-chevron-right toggle-icon" id="threads-toggle-icon"></i>
+                    <i class="fa-solid fa-eye-slash hide-card-icon" id="btn-hide-threads" style="margin-left: 10px; cursor: pointer;" title="Hide this section permanently"></i>
+                </div>
+            </div>
+            <div class="threads-list" id="threads-list" style="display: none;">
+                <!-- Dynamically populated thread progress bars -->
+            </div>
+        </div>
+
+        <!-- Footer Actions Buttons -->
+        <div class="footer-actions">
+            <div class="control-group" style="display: flex; gap: 4px;">
+                <button id="btn-action-pause" class="btn primary-gradient"><i class="fa-solid fa-pause"></i> CONTROL</button>
+                <button class="btn icon-btn-next" style="padding: 8px 12px; border-radius: 20px; background-color: #e2e8f0; color: #475569;"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+            <button id="btn-show-visualizers" class="btn secondary-btn" style="display: none;"><i class="fa-solid fa-eye"></i> SHOW SECTIONS</button>
+            <button id="btn-action-cancel" class="btn secondary-btn"><i class="fa-solid fa-xmark"></i> CANCEL</button>
+            <button id="btn-action-close" class="btn secondary-btn"><i class="fa-solid fa-eye-slash"></i> HIDE</button>
+        </div>
+    </div>
+
+    <script src="progress.js"></script>
+</body>
+</html>

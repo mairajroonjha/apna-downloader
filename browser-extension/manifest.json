@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Apna Dowanloader",
+  "version": "1.0",
+  "description": "Integrates Chrome browser with Apna Dowanloader, providing right-click downloads and floating video buttons.",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuhTfMMwXV816bu9lMbKLXfYDbBP2zyVuko0nCLm5Y6H6hY7B31BsULe8q47+Ez2w3D5h7YOf+BiXQtga+jJ/fChZMK5cVCL14h8FYXB2rGh2YpLqswBrn+56hBTPnaSgwutm4daJo/RUrajFc8hDsh40a/wDNyRKcRyS9pFnaoX+5QXrJJNA50cgtXuBnykeWoX29p4L8K5NPyvxG8MEidivjNeJ28s22avuyvNgtvSQzwPh7sU8jXeW7gCAr+z4v1aCPOLIKhMEIA5rKskoH4eX1mTWOvz3UUIWR/J3pCeO9QJIAZmVdUEeFV46tQigcqGzOiolHpSrDPLbLW+tUQIDAQAB",
+  "permissions": [
+    "contextMenus",
+    "downloads",
+    "nativeMessaging"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icon16.png", "icon48.png"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
+}

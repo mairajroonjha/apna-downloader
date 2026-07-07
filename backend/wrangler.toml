@@ -1,0 +1,14 @@
+name = "apna-downloader-backend"
+main = "src/index.js"
+compatibility_date = "2024-03-01"
+
+# Cloudflare D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "apnadl-db"
+database_id = "33cb9f88-c032-4053-9af1-6058250a4310"
+
+# Cloudflare R2 Object Storage binding
+[[r2_buckets]]
+binding = "RECEIPTS_BUCKET"
+bucket_name = "apnadl-receipts"

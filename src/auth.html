@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Apna Downloader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1f2937;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #3b82f6;
+            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --accent-glow: rgba(59, 130, 246, 0.35);
+            --danger-color: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 360px;
+            padding: 30px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .logo-section {
+            margin-bottom: 25px;
+        }
+
+        .logo-section i {
+            font-size: 38px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px var(--accent-glow));
+        }
+
+        .logo-section h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-section p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 10px 10px 10px 38px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .toggle-link {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .toggle-link span {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .error-bubble {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 16px;
+            display: none;
+            text-align: left;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo-section">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+            <h2>Apna Downloader</h2>
+            <p id="auth-subtitle">Log in to verify your 15-day free trial</p>
+        </div>
+
+        <div id="error-msg" class="error-bubble"></div>
+
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+            <!-- Registration Only Fields -->
+            <div id="register-fields" style="display: none;">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="first_name" placeholder="First Name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="last_name" placeholder="Last Name">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" placeholder="name@example.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" placeholder="••••••••" required minlength="6">
+                </div>
+            </div>
+
+            <button type="submit" id="btn-submit" class="btn">
+                <span id="btn-text">Log In</span>
+                <i id="btn-spinner" class="fa-solid fa-circle-notch fa-spin" style="display: none;"></i>
+            </button>
+
+            <div style="display: flex; align-items: center; margin: 16px 0; font-size: 11px; color: var(--text-muted); gap: 10px;">
+                <hr style="flex: 1; border: none; border-top: 1px solid var(--border-color);">
+                <span>OR</span>
+                <hr style="flex: 1; border: none; border-top: 1px solid var(--border-color);">
+            </div>
+
+            <button type="button" id="btn-google" class="btn" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: var(--text-main); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i class="fa-brands fa-google" style="color: #ea4335;"></i>
+                <span>Continue with Google</span>
+            </button>
+        </form>
+
+        <div class="toggle-link" id="toggle-auth-mode" onclick="toggleMode()">
+            Don't have an account? <span>Register</span>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>

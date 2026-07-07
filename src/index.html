@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apna Downloader</title>
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <img src="icon.png" alt="Apna Downloader Icon" class="splash-logo-image">
+            </div>
+            <div class="splash-title">Apna <span class="accent-text">Downloader</span></div>
+            <div class="splash-subtitle">Developed by <span class="designer-text">Mairaj Ahmed</span></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Top Toolbar -->
+        <header class="toolbar">
+
+            <div class="actions">
+                <button id="btn-add-url" class="btn primary" title="Add New Download URL">
+                    <i class="fa-solid fa-plus"></i> Add URL
+                </button>
+                <div class="divider"></div>
+                <button id="btn-resume" class="btn" title="Resume Download" disabled>
+                    <i class="fa-solid fa-play"></i> Resume
+                </button>
+                <button id="btn-pause" class="btn" title="Pause Download" disabled>
+                    <i class="fa-solid fa-pause"></i> Pause
+                </button>
+                <button id="btn-delete" class="btn danger" title="Delete Download" disabled>
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+                <div class="divider"></div>
+                <button id="btn-open-file" class="btn" title="Open Downloaded File" disabled>
+                    <i class="fa-solid fa-folder-open"></i> Open File
+                </button>
+
+                <button id="btn-open-folder" class="btn" title="Show in Folder" disabled>
+                    <i class="fa-solid fa-folder"></i> Open Folder
+                </button>
+                <div class="divider"></div>
+                <button id="btn-start-queue" class="btn" title="Start Download Queue">
+                    <i class="fa-solid fa-circle-play" style="color: var(--success-color);"></i> Start Queue
+                </button>
+                <button id="btn-stop-queue" class="btn" title="Stop Download Queue">
+                    <i class="fa-solid fa-circle-stop" style="color: var(--danger-color);"></i> Stop Queue
+                </button>
+            </div>
+            
+            <!-- Top Right Profile Indicator -->
+            <div id="top-profile-widget" class="profile-widget" style="display: flex; align-items: center; justify-content: center; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(0,0,0,0.15); transition: background 0.2s, border-color 0.2s; margin-left: auto;" title="View Profile">
+                <i class="fa-solid fa-circle-user" style="font-size: 20px; color: var(--accent-color);"></i>
+                <span id="top-profile-email" style="display: none;">user@example.com</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Sidebar Categories -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Status</h3>
+                    <ul class="nav-list">
+                        <li class="nav-item active" data-filter="all">
+                            <i class="fa-solid fa-list-ul"></i>
+                            <span>All Downloads</span>
+                            <span class="badge" id="badge-all">0</span>
+                        </li>
+                        <li class="nav-item" data-filter="downloading">
+                            <i id="nav-downloading-icon" class="fa-solid fa-spinner"></i>
+                            <span>Downloading</span>
+                            <span class="badge" id="badge-downloading">0</span>
+                        </li>
+                        <li class="nav-item" data-filter="completed">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Completed</span>
+                            <span class="badge" id="badge-completed">0</span>
+                        </li>
+                        <li class="nav-item" data-filter="paused">
+                            <i class="fa-solid fa-circle-pause"></i>
+                            <span>Paused</span>
+                            <span class="badge" id="badge-paused">0</span>
+                        </li>
+                        <li class="nav-item" data-filter="failed">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Failed</span>
+                            <span class="badge" id="badge-failed">0</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section" style="margin-top: 15px;">
+                    <h3>File Types</h3>
+                    <ul class="nav-list" id="sidebar-categories-list">
+                        <!-- Dynamic Categories -->
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section" style="margin-top: 15px;">
+                    <h3>Tools</h3>
+                    <ul class="nav-list">
+                        <li class="nav-item" id="nav-analytics">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Speed Analytics</span>
+                        </li>
+                        <li class="nav-item" id="nav-settings">
+                            <i class="fa-solid fa-gear"></i>
+                            <span>Settings & Options</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <h3>Speed Activity</h3>
+                    <div class="speed-chart-wrapper" style="margin-top: 10px; position: relative; height: 100px; background: rgba(0,0,0,0.2); border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <canvas id="speed-chart" style="width: 100%; height: 100%; display: block;"></canvas>
+                        <div id="chart-speed-text" style="position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 600; color: var(--accent-color); text-shadow: 0 0 4px rgba(0,0,0,0.8);">0 KB/s</div>
+                    </div>
+                </div>
+
+
+            </aside>
+
+            <!-- Table Panel -->
+            <main class="table-container">
+                <table class="download-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 4%; text-align: center; padding: 10px 5px;"><input type="checkbox" id="select-all-downloads" style="accent-color: var(--accent-color); cursor: pointer;"></th>
+                            <th style="width: 21%">File Name</th>
+                            <th style="width: 10%">Size</th>
+                            <th style="width: 18%">Progress</th>
+                            <th style="width: 11%">Status</th>
+                            <th style="width: 11%">Category</th>
+                            <th style="width: 9%">Speed</th>
+                            <th style="width: 9%">Time Left</th>
+                            <th style="width: 7%">Added</th>
+                        </tr>
+                    </thead>
+                    <tbody id="download-list-body">
+                        <!-- Items dynamically injected here -->
+                        <tr class="empty-state-row">
+                            <td colspan="8" class="empty-state">
+                                <i class="fa-solid fa-folder-open empty-icon"></i>
+                                <p>No downloads found. Click "Add URL" to begin.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </main>
+
+            <!-- Settings Panel -->
+            <main id="settings-container" class="settings-container" style="display: none;">
+                <div class="settings-header">
+                    <h2><i class="fa-solid fa-gear"></i> Settings & Options</h2>
+                    <p>Customize queue, bandwidth limiter, scheduler, and visual themes</p>
+                </div>
+                
+                <div class="settings-grid">
+                    <!-- Bandwidth & Limiter -->
+                    <div class="settings-card" id="card-bandwidth">
+                        <h3><i class="fa-solid fa-gauge-high"></i> Bandwidth Control</h3>
+                        <div class="form-group row">
+                            <label class="switch-label">
+                                <input type="checkbox" id="setting-limit-speed">
+                                <span class="slider-toggle"></span>
+                                <span>Enable Global Speed Limit</span>
+                            </label>
+                        </div>
+                        <div class="form-group speed-limit-input-group">
+                            <label for="setting-speed-value">Max Download Speed (KB/s)</label>
+                            <input type="number" id="setting-speed-value" min="10" value="1024">
+                            <span class="input-helper">e.g., 1024 KB/s = 1 MB/s</span>
+                        </div>
+                    </div>
+
+                    <!-- Sequential Queue -->
+                    <div class="settings-card" id="card-queue">
+                        <h3><i class="fa-solid fa-arrows-spin"></i> Queue Manager</h3>
+                        <div class="form-group row">
+                            <label class="switch-label">
+                                <input type="checkbox" id="setting-enable-queue">
+                                <span class="slider-toggle"></span>
+                                <span>Enable Sequential Downloads</span>
+                            </label>
+                        </div>
+                        <div class="form-group queue-input-group">
+                            <label for="setting-concurrent-downloads">Max Concurrent Downloads</label>
+                            <input type="number" id="setting-concurrent-downloads" min="1" max="10" value="2">
+                            <span class="input-helper">Higher count starts more downloads simultaneously</span>
+                        </div>
+                    </div>
+
+                    <!-- Scheduler -->
+                    <div class="settings-card" id="card-scheduler">
+                        <h3><i class="fa-solid fa-calendar-days"></i> Download Scheduler</h3>
+                        <div class="form-group row">
+                            <label class="switch-label">
+                                <input type="checkbox" id="setting-enable-scheduler">
+                                <span class="slider-toggle"></span>
+                                <span>Enable Time Scheduler</span>
+                            </label>
+                        </div>
+                        <div class="scheduler-time-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                            <div class="form-group">
+                                <label for="setting-scheduler-start">Start Time</label>
+                                <input type="time" id="setting-scheduler-start" value="23:00">
+                            </div>
+                            <div class="form-group">
+                                <label for="setting-scheduler-stop">Stop Time</label>
+                                <input type="time" id="setting-scheduler-stop" value="07:00">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label for="setting-scheduler-action">On Stop Event Action</label>
+                            <select id="setting-scheduler-action">
+                                <option value="pause">Pause running downloads</option>
+                                <option value="exit">Exit Apna Downloader app</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Theme & Appearance -->
+                    <div class="settings-card" id="card-themes">
+                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Themes & Customization</h3>
+                        <div class="form-group">
+                            <label for="setting-select-theme">App Theme Style</label>
+                            <select id="setting-select-theme">
+                                <option value="dark">Deep Dark Mode (Sleek)</option>
+                                <option value="glass">Glassmorphic Neon (Premium)</option>
+                                <option value="light">Clean Light Mode</option>
+                                <option value="skeuomorphic">Skeuomorphic Retro</option>
+                                <option value="neumorphic">Neumorphic Soft (Soft Plastic)</option>
+                                <option value="flat">Flat Minimal (2D Classic)</option>
+                                <option value="minimalist">Minimalist White (High Space)</option>
+                                <option value="brutalist">Brutalist Cyber (Anti-Design)</option>
+                                <option value="neobrutalist">Neo-Brutalism (Pastel Cyber)</option>
+                                <option value="claymorphic">Claymorphism (3D Toy Look)</option>
+                                <option value="cyberpunk">Cyberpunk Neon (Hot Synth)</option>
+                                <option value="biophilic">Biophilic Nature (Forest Cream)</option>
+                                <option value="vintage">Vintage Editorial (Newspaper)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label>Accent Color Highlight</label>
+                            <div class="accent-color-picker" style="display: flex; gap: 10px; margin-top: 5px;">
+                                <div class="color-swatch blue active" data-color="blue" title="Sky Blue" style="width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s; background: #3b82f6;"></div>
+                                <div class="color-swatch purple" data-color="purple" title="Royal Purple" style="width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s; background: #a855f7;"></div>
+                                <div class="color-swatch green" data-color="green" title="Emerald Green" style="width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s; background: #10b981;"></div>
+                                <div class="color-swatch red" data-color="red" title="Ruby Red" style="width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s; background: #ef4444;"></div>
+                                <div class="color-swatch gold" data-color="gold" title="Amber Gold" style="width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s; background: #f59e0b;"></div>
+                                <div class="color-swatch pink" data-color="pink" title="Neon Pink" style="width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s; background: #ec4899;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clipboard Monitor & Exclusions -->
+                    <div class="settings-card" id="card-clipboard">
+                        <h3><i class="fa-solid fa-paste"></i> Clipboard Monitor</h3>
+                        <div class="form-group row">
+                            <label class="switch-label">
+                                <input type="checkbox" id="setting-clipboard-monitor">
+                                <span class="slider-toggle"></span>
+                                <span>Enable Clipboard Monitor (Auto-Grab)</span>
+                            </label>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label for="setting-excluded-domains">Exclude Domains (comma-separated)</label>
+                            <textarea id="setting-excluded-domains" rows="3" placeholder="e.g., wikipedia.org, youtube.com" style="width: 100%; box-sizing: border-box; resize: vertical; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 13px;"></textarea>
+                            <span class="input-helper">URLs from these domains won't trigger clipboard capture or hover grabbers.</span>
+                        </div>
+                    </div>
+
+                    <!-- Post-Download Actions -->
+                    <div class="settings-card" id="card-post-download">
+                        <h3><i class="fa-solid fa-circle-check"></i> Post-Download Actions</h3>
+                        <div class="form-group row" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                            <label class="switch-label">
+                                <input type="checkbox" id="setting-post-notification">
+                                <span class="slider-toggle"></span>
+                                <span>Show Windows Notification on Complete</span>
+                            </label>
+                            <label class="switch-label">
+                                <input type="checkbox" id="setting-post-play-sound">
+                                <span class="slider-toggle"></span>
+                                <span>Play Completion Chime Sound</span>
+                            </label>
+                            <label class="switch-label">
+                                <input type="checkbox" id="setting-post-open-file">
+                                <span class="slider-toggle"></span>
+                                <span>Auto-Open File on Completion</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Help & Guide Onboarding -->
+                    <div class="settings-card" id="card-help">
+                        <h3><i class="fa-solid fa-circle-question"></i> Help & Guide</h3>
+                        <div class="form-group" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; height: 100%; justify-content: space-between;">
+                            <div>
+                                <label style="margin-bottom: 4px;">Need a tour of Apna Downloader?</label>
+                                <span class="input-helper" style="display: block; margin-bottom: 12px; line-height: 1.4;">Launch the interactive step-by-step tour to learn about the key features, categories, and settings interface.</span>
+                            </div>
+                            <button id="btn-restart-tour" class="btn secondary" style="width: 100%; justify-content: center; gap: 8px; padding: 10px; font-weight: 600;">
+                                <i class="fa-solid fa-road"></i> Start Interactive Tour
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- About & Developer Info -->
+                    <div class="settings-card" id="card-about">
+                        <h3><i class="fa-solid fa-circle-info"></i> About & Developer</h3>
+                        <div class="about-card-content" style="margin-top: 5px; display: flex; flex-direction: column; gap: 15px; height: 100%; justify-content: space-between; flex: 1;">
+                            <div class="about-branding" style="display: flex; align-items: center; gap: 12px;">
+                                <div class="about-logo-wrapper" style="background: rgba(255, 255, 255, 0.03); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                                    <img src="icon.png" style="width: 40px; height: 40px; object-fit: contain;" alt="Apna Downloader Logo">
+                                </div>
+                                <div class="about-details">
+                                    <h4 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-main); font-family: inherit;">Apna Downloader</h4>
+                                    <span style="font-size: 11px; opacity: 0.7; color: var(--text-muted);">Version 1.0.0 (Production Release)</span>
+                                </div>
+                            </div>
+                            
+                            <p style="font-size: 12px; line-height: 1.5; margin: 0; color: var(--text-muted);">
+                                A high-performance segmented downloader designed for high-speed multi-connection downloads. Created by <strong>Mairaj Ahmed (Mairaj Roonjha)</strong>.
+                            </p>
+                            
+                            <div class="about-contacts" style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 5px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-envelope" style="color: var(--accent-color); width: 16px; text-align: center; font-size: 14px;"></i>
+                                    <span style="font-weight: 500; color: var(--text-main);">Support Email:</span>
+                                    <a href="mailto:Mirajroonjha@gmail.com" class="about-link" style="color: var(--accent-color); text-decoration: none; word-break: break-all;">Mirajroonjha@gmail.com</a>
+                                </div>
+                            </div>
+                            
+                            <div class="about-socials-wrapper" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto;">
+                                <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">Connect with me</div>
+                                <div class="about-socials" style="display: flex; gap: 10px;">
+                                    <a href="https://www.linkedin.com/in/mairajroonjha/" target="_blank" class="social-btn linkedin" title="LinkedIn" style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 6px; background: rgba(0, 119, 181, 0.1); border: 1px solid rgba(0, 119, 181, 0.2); color: #0077b5; font-size: 16px; transition: all 0.2s ease; text-decoration: none;">
+                                        <i class="fa-brands fa-linkedin-in"></i>
+                                    </a>
+                                    <a href="https://www.instagram.com/mairajroonjha/" target="_blank" class="social-btn instagram" title="Instagram" style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 6px; background: rgba(225, 48, 108, 0.1); border: 1px solid rgba(225, 48, 108, 0.2); color: #e1306c; font-size: 16px; transition: all 0.2s ease; text-decoration: none;">
+                                        <i class="fa-brands fa-instagram"></i>
+                                    </a>
+                                    <a href="https://web.facebook.com/mairajroonjha" target="_blank" class="social-btn facebook" title="Facebook" style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 6px; background: rgba(24, 119, 242, 0.1); border: 1px solid rgba(24, 119, 242, 0.2); color: #1877f2; font-size: 16px; transition: all 0.2s ease; text-decoration: none;">
+                                        <i class="fa-brands fa-facebook-f"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-footer" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 15px; align-items: center;">
+                    <span id="settings-status-msg" style="margin-right: auto; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; color: var(--accent-color);">
+                        <i class="fa-solid fa-circle-check"></i> Settings saved successfully
+                    </span>
+                    <button id="btn-logout" class="btn text" style="color: var(--text-muted); background: transparent; border: none; font-weight: 500; font-size: 13px; cursor: pointer; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                    <button id="btn-reset-settings" class="btn secondary" style="padding: 10px 20px; border-color: #ef4444; color: #ef4444; background: transparent; font-weight: 600;">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Reset to Default
+                    </button>
+                    <button id="btn-save-settings" class="btn primary" style="padding: 10px 24px; min-width: 140px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Settings
+                    </button>
+                </div>
+            </main>
+
+            <!-- Analytics Panel -->
+            <main id="analytics-container" class="settings-container" style="display: none; padding: 25px; box-sizing: border-box; overflow-y: auto;">
+                <div class="settings-header" style="margin-bottom: 25px;">
+                    <h2><i class="fa-solid fa-chart-line"></i> Speed & Bandwidth Analytics</h2>
+                    <p>Real-time telemetry and network speed charts</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start;">
+                    <!-- Left: Speedometer & Session Stats -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Speedometer -->
+                        <div class="settings-card" style="margin-bottom: 0; text-align: center; padding: 25px 20px;">
+                            <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.5px;">Current Speed</div>
+                            <div id="analytics-speed-odometer" style="font-size: 36px; font-weight: 800; color: var(--accent-color); font-family: monospace, sans-serif; text-shadow: 0 0 15px var(--accent-glow);">0.0</div>
+                            <div id="analytics-speed-unit" style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 2px;">KB/s</div>
+                        </div>
+
+                        <!-- Session Stats -->
+                        <div class="settings-card" style="margin-bottom: 0; padding: 20px;">
+                            <h3 style="margin-bottom: 15px; font-size: 14px; font-weight: 600;"><i class="fa-solid fa-circle-info"></i> Session Statistics</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-muted);">Total Downloaded:</span>
+                                    <span id="stat-total-downloaded" style="font-weight: 600; color: var(--text-main);">0.00 MB</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-muted);">Average Speed:</span>
+                                    <span id="stat-avg-speed" style="font-weight: 600; color: var(--text-main);">0 KB/s</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-muted);">Peak Speed:</span>
+                                    <span id="stat-peak-speed" style="font-weight: 600; color: var(--text-main);">0 KB/s</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-muted);">Active Connections:</span>
+                                    <span id="stat-active-threads" style="font-weight: 600; color: var(--text-main);">0 threads</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Large Real-time Line Graph -->
+                    <div class="settings-card" style="margin-bottom: 0; padding: 20px; height: 100%; display: flex; flex-direction: column;">
+                        <h3 style="margin-bottom: 10px; font-size: 14px; font-weight: 600;"><i class="fa-solid fa-wave-square"></i> Real-time Bandwidth History</h3>
+                        <div style="flex: 1; min-height: 200px; position: relative; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; margin-top: 5px;">
+                            <canvas id="analytics-speed-chart" style="width: 100%; height: 100%; display: block;"></canvas>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 8px;">
+                            <span>60 seconds ago</span>
+                            <span>Now</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Profile / Customer Portal Panel -->
+            <main id="profile-container" class="settings-container" style="display: none; padding: 25px; box-sizing: border-box; overflow-y: auto;">
+                <div class="settings-header" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 id="profile-display-name"><i class="fa-solid fa-circle-user"></i> Customer Profile Portal</h2>
+                    <span id="profile-user-email" style="font-size: 14px; font-weight: 600; color: var(--accent-color); background: rgba(59, 130, 246, 0.1); padding: 6px 12px; border-radius: 20px;">email@example.com</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                    <!-- Left Column: Subscription details -->
+                    <div class="settings-card" style="margin-bottom: 0; padding: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;"><i class="fa-solid fa-credit-card"></i> License Summary</h3>
+                        
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px;">
+                            <span style="color: var(--text-muted);">Plan Type:</span>
+                            <span id="profile-plan-type" style="font-weight: 600; text-transform: uppercase; color: var(--warning-color);">Trial</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px;">
+                            <span style="color: var(--text-muted);">Status:</span>
+                            <span id="profile-status" style="font-weight: 600; text-transform: uppercase; color: var(--success-color);">Active</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px;">
+                            <span style="color: var(--text-muted);">PC Slots Occupied:</span>
+                            <span id="profile-slots-count" style="font-weight: 600; color: var(--text-main);">1 / 1 Slots</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px;">
+                            <span style="color: var(--text-muted);">Expiry Date:</span>
+                            <span id="profile-expiry" style="font-weight: 600; color: var(--text-main);">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; margin-bottom: 20px;">
+                            <span style="color: var(--text-muted);">Current Device ID:</span>
+                            <span id="profile-current-device" style="font-weight: 600; font-family: monospace; color: var(--accent-color); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;">-</span>
+                        </div>
+
+                        <button id="btn-profile-buy" class="btn primary" style="width: 100%; justify-content: center; height: 38px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-cart-shopping"></i> Purchase License
+                        </button>
+                        <button id="btn-profile-activate" class="btn primary" style="width: 100%; justify-content: center; height: 38px; font-weight: 600; display: none; align-items: center; gap: 8px; background: var(--accent-gradient); border: none;">
+                            <i class="fa-solid fa-circle-play"></i> Activate Free Trial
+                        </button>
+                        <button id="btn-profile-logout" class="btn secondary" style="width: 100%; justify-content: center; height: 38px; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-top: 10px; border-color: rgba(239, 68, 68, 0.4); color: var(--danger-color); background: transparent;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout Account
+                        </button>
+                    </div>
+
+                    <!-- Right Column: Registered PC Hardware list -->
+                    <div class="settings-card" style="margin-bottom: 0; padding: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;"><i class="fa-solid fa-microchip"></i> Registered Devices</h3>
+                        <span style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 15px; line-height: 1.4;">Below are the unique hardware keys authorized to use your license.</span>
+
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden;">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.02);">
+                                    <th style="padding: 10px; text-align: left; color: var(--text-muted); border-bottom: 1px solid var(--border-color);">Slot Index</th>
+                                    <th style="padding: 10px; text-align: left; color: var(--text-muted); border-bottom: 1px solid var(--border-color);">Hardware ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="profile-devices-list">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <span id="active-jobs-count">0 downloads active</span>
+            </div>
+            <div class="status-right" style="display: flex; align-items: center; gap: 15px;">
+                <span id="total-speed">Total Speed: 0 KB/s</span>
+                <div style="width: 1px; height: 14px; background-color: var(--border-color);"></div>
+                <div class="quick-limiter-widget" style="display: flex; align-items: center; gap: 6px; user-select: none;">
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: var(--text-main); font-weight: 500;">
+                        <input type="checkbox" id="quick-limit-enable" style="width: 12px; height: 12px; cursor: pointer; margin: 0; vertical-align: middle;">
+                        <span>Limit Speed:</span>
+                    </label>
+                    <select id="quick-limit-value" style="padding: 1px 4px; font-size: 10px; border-radius: 4px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-main); font-weight: 600; cursor: pointer; outline: none; height: 18px; line-height: 1;">
+                        <option value="128">128 KB/s</option>
+                        <option value="256">256 KB/s</option>
+                        <option value="512">512 KB/s</option>
+                        <option value="1024" selected>1 MB/s</option>
+                        <option value="2048">2 MB/s</option>
+                        <option value="5120">5 MB/s</option>
+                        <option value="10240">10 MB/s</option>
+                    </select>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Add URL Modal Dialog Overlay -->
+        <div id="add-url-modal" class="modal-overlay">
+            <div class="modal-box download-file-info-modal">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-file-invoice"></i> Download File Info</h2>
+                    <button class="modal-close" id="modal-close-btn">&times;</button>
+                </div>
+                <div class="modal-body-wrapper">
+                    <!-- Left Form Section -->
+                    <div class="modal-main-form">
+                        <div class="form-group">
+                            <label for="input-url">URL</label>
+                            <input type="text" id="input-url" placeholder="Paste link address here (HTTP/HTTPS)" autofocus>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="select-category">Category</label>
+                            <div class="input-with-button">
+                                <select id="select-category">
+                                    <option value="videos">Videos</option>
+                                    <option value="music">Music</option>
+                                    <option value="compressed">Compressed</option>
+                                    <option value="documents">Documents</option>
+                                    <option value="programs">Programs</option>
+                                    <option value="webpages">Web Pages</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <button id="btn-add-category" class="btn secondary" style="padding: 8px 12px; font-weight: bold;">+</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="input-save-path">Save As</label>
+                            <div class="input-with-button">
+                                <input type="text" id="input-save-path" readonly placeholder="Choose where to save file...">
+                                <button id="btn-browse-folder" class="btn secondary" style="padding: 8px 12px;">...</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="gap: 4px;">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: none; font-weight: normal; font-size: 11px; color: var(--text-muted);">
+                                <input type="checkbox" id="chk-remember-path" checked>
+                                <span>Remember this path for "<span id="lbl-category-name">videos</span>" category</span>
+                            </label>
+                            <input type="text" id="input-category-path" readonly class="category-path-display" value="C:\Downloads\Videos">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="input-description">Description</label>
+                            <input type="text" id="input-description" placeholder="Enter optional description here...">
+                        </div>
+                        
+                        <!-- Thread count selection styled cleanly -->
+                        <div class="form-group" style="margin-top: 5px;">
+                            <label for="connections-count">Parallel Threads</label>
+                            <select id="connections-count" style="padding: 8px 10px;">
+                                <option value="1">1 Thread (Single connection)</option>
+                                <option value="2">2 Threads</option>
+                                <option value="4">4 Threads</option>
+                                <option value="8" selected>8 Threads (Recommended)</option>
+                                <option value="16">16 Threads</option>
+                                <option value="32">32 Threads (High-bandwidth)</option>
+                            </select>
+                        </div>
+
+                        <!-- Subtitle downloading checkbox option -->
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: none; font-weight: normal; font-size: 11px; color: var(--text-muted);">
+                                <input type="checkbox" id="chk-download-subtitles">
+                                <span>Download Subtitles (SRT) if available</span>
+                            </label>
+                        </div>
+
+                        <!-- Playlist Loader Spinner -->
+                        <div id="playlist-loader" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 10px; border: 1px dashed var(--border-color); border-radius: 8px; margin-top: 10px; background: rgba(0,0,0,0.15);">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: var(--accent-color);"></i>
+                            <span style="font-size: 12px; font-weight: 500;">Reading playlist metadata...</span>
+                        </div>
+
+                        <!-- Playlist Container -->
+                        <div id="playlist-container" style="display: none; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; background: rgba(0,0,0,0.15); padding: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 4px;">
+                                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent-color);" id="playlist-title">Playlist Detected</span>
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                    <input type="checkbox" id="playlist-select-all" checked style="accent-color: var(--accent-color);">
+                                    <span>Select All</span>
+                                </label>
+                            </div>
+                            <div id="playlist-items-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                                <!-- Playlist items loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side panel with file icon & size -->
+                    <div class="modal-side-panel">
+                        <div class="file-type-icon-wrapper" id="side-icon-container">
+                            <i class="fa-solid fa-file-video" id="side-file-icon"></i>
+                        </div>
+                        <div class="file-size-label">File Size:</div>
+                        <div class="file-size-display" id="side-file-size">Unknown</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btn-add-later" class="btn secondary" style="min-width: 110px; justify-content: center;">Download Later</button>
+                    <button id="btn-add-start" class="btn primary" disabled style="min-width: 120px; justify-content: center;">Start Download</button>
+                    <button id="btn-add-cancel" class="btn text" style="min-width: 80px; justify-content: center;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Clipboard Grab Toast -->
+    <div id="clipboard-toast" class="clipboard-toast">
+        <div class="toast-icon">
+            <i class="fa-solid fa-clipboard-question"></i>
+        </div>
+        <div class="toast-body">
+            <div class="toast-title">Download Link Detected</div>
+            <div class="toast-desc" id="clipboard-toast-url">https://example.com/file.zip</div>
+        </div>
+        <div class="toast-actions">
+            <button id="btn-clipboard-download" class="btn primary btn-sm">Download</button>
+            <button id="btn-clipboard-ignore" class="btn text btn-sm">Ignore</button>
+        </div>
+    </div>
+
+    <!-- Tour Overlay Onboarding -->
+    <div id="tour-overlay" class="tour-overlay" style="display: none;">
+        <div id="tour-highlight-box" class="tour-highlight-box"></div>
+        <div id="tour-popover" class="tour-popover">
+            <div class="tour-popover-arrow"></div>
+            <div class="tour-popover-content">
+                <h4 id="tour-title">Title</h4>
+                <p id="tour-desc">Description</p>
+            </div>
+            <div class="tour-popover-footer">
+                <button id="btn-tour-skip" class="btn text btn-sm">Skip</button>
+                <div class="tour-navigation">
+                    <button id="btn-tour-back" class="btn secondary btn-sm"><i class="fa-solid fa-angle-left"></i> Back</button>
+                    <span id="tour-steps-indicator">1/4</span>
+                    <button id="btn-tour-next" class="btn primary btn-sm">Next <i class="fa-solid fa-angle-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal Dialog Overlay -->
+    <div id="add-category-modal" class="modal-overlay category-modal">
+        <div class="modal-box" style="width: 450px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-folder-plus"></i> Create Custom Category</h2>
+                <button class="modal-close" id="modal-close-category-btn">&times;</button>
+            </div>
+            <div class="modal-body-wrapper" style="flex-direction: column; padding: 20px; gap: 15px; border-left: none;">
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="input-category-name" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">Category Name</label>
+                    <input type="text" id="input-category-name" placeholder="e.g., E-Books, Torrents, Coursework" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0, 0, 0, 0.2); color: var(--text-color);">
+                </div>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="input-category-save-path" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">Default Save Folder</label>
+                    <div class="input-with-button">
+                        <input type="text" id="input-category-save-path" readonly placeholder="Choose default save path..." style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0, 0, 0, 0.2); color: var(--text-color);">
+                        <button id="btn-browse-category-folder" class="btn secondary" style="padding: 8px 12px;">...</button>
+                    </div>
+                </div>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="input-category-extensions" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">File Extensions (optional, comma-separated)</label>
+                    <input type="text" id="input-category-extensions" placeholder="e.g., epub, mobi, pdf" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0, 0, 0, 0.2); color: var(--text-color);">
+                    <span class="input-helper" style="font-size: 11px; color: var(--text-muted);">Files matching these extensions will automatically select this category.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background-color: rgba(0, 0, 0, 0.1);">
+                <button id="btn-create-category-save" class="btn primary" style="min-width: 120px; justify-content: center; height: 36px; padding: 0 16px; font-weight: 600;">Create Category</button>
+                <button id="btn-create-category-cancel" class="btn text" style="min-width: 80px; justify-content: center; height: 36px; padding: 0 16px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Converter Modal Overlay -->
+    <div id="media-converter-modal" class="modal-overlay">
+        <div class="modal-box" style="width: 480px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-audio"></i> Convert Media File</h2>
+                <button class="modal-close" id="modal-close-converter-btn">&times;</button>
+            </div>
+            <div class="modal-body-wrapper" style="flex-direction: column; padding: 20px; gap: 15px; border-left: none;">
+                <!-- Source Info -->
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--accent-color);">Source File</span>
+                    <span id="converter-source-name" style="font-weight: 600; word-break: break-all; font-size: 13px;">file.mkv</span>
+                    <span id="converter-source-size" style="font-size: 11px; color: var(--text-muted);">0.00 MB</span>
+                </div>
+                
+                <!-- Format Selector -->
+                <div class="form-group" id="converter-form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">Convert To Format</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                            <input type="radio" name="converter-format" value="mp3" checked style="accent-color: var(--accent-color);">
+                            <span>MP3 Audio (.mp3)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                            <input type="radio" name="converter-format" value="mp4" style="accent-color: var(--accent-color);">
+                            <span>MP4 Video (.mp4)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Progress Section (hidden initially) -->
+                <div id="converter-progress-container" style="display: none; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span id="converter-status-text" style="font-weight: 500;">Converting media file...</span>
+                        <span id="converter-percent-text" style="font-weight: 600; color: var(--accent-color);">0.0%</span>
+                    </div>
+                    <div class="progress-bar-container" style="height: 8px; border-radius: 4px;">
+                        <div id="converter-progress-bar-fill" class="progress-bar-fill" style="width: 0%; height: 100%; border-radius: 4px; background: var(--accent-color);"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background-color: rgba(0, 0, 0, 0.1);">
+                <button id="btn-converter-start" class="btn primary" style="min-width: 100px; justify-content: center; height: 36px; padding: 0 16px; font-weight: 600;">Convert</button>
+                <button id="btn-converter-cancel" class="btn text" style="min-width: 80px; justify-content: center; height: 36px; padding: 0 16px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engine Init Overlay -->
+    <div id="engine-init-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-primary); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s;">
+        <div style="background-color: var(--bg-secondary); padding: 30px 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); text-align: center; border: 1px solid var(--border-color); width: 400px; max-width: 90%; color: var(--text-main);">
+            <i class="fa-solid fa-gear fa-spin" style="font-size: 40px; color: var(--accent-color); margin-bottom: 20px;"></i>
+            <h3 style="margin-bottom: 15px; font-weight: 600; color: var(--text-main);">Optimizing Engines...</h3>
+            <p id="engine-init-text" style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Preparing video processing tools for first use</p>
+            <div class="progress-bar-container" style="height: 8px; border-radius: 4px; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); overflow: hidden; position: relative;">
+                <div id="engine-init-progress" class="progress-bar-fill" style="width: 0%; height: 100%; background: var(--accent-color); transition: width 0.3s;"></div>
+            </div>
+            <div id="engine-init-percent" style="font-size: 12px; margin-top: 8px; color: var(--accent-color); font-weight: bold;">0%</div>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div id="delete-confirm-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px; padding: 0; display: flex; flex-direction: column;">
+            <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+                <h2><i class="fa-solid fa-trash-can" style="color: #ef4444;"></i> Delete Download</h2>
+                <button class="modal-close" id="delete-modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px; font-size: 13px; line-height: 1.5; color: var(--text-muted); display: flex; flex-direction: column; gap: 12px;">
+                <span id="delete-modal-prompt-text">Are you sure you want to delete this download from the list?</span>
+                <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-main); font-size: 12px; margin-top: 10px;">
+                    <input type="checkbox" id="chk-delete-disk-file" style="accent-color: var(--accent-color); cursor: pointer;">
+                    <span>Delete downloaded file(s) from disk as well</span>
+                </label>
+            </div>
+            <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background-color: rgba(0, 0, 0, 0.1);">
+                <button id="btn-delete-confirm-cancel" class="btn secondary" style="min-width: 80px; justify-content: center; height: 36px;">Cancel</button>
+                <button id="btn-delete-confirm-submit" class="btn primary" style="background-color: #ef4444; border-color: #ef4444; color: white; min-width: 90px; justify-content: center; height: 36px;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- License Paywall Lock Overlay -->
+    <div id="paywall-lock-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(11, 15, 25, 0.93); z-index: 9998; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+        <div style="background-color: var(--bg-secondary); padding: 35px 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; border: 1px solid var(--border-color); width: 420px; max-width: 90%; color: var(--text-main); position: relative;">
+            <button id="paywall-close-btn" style="position: absolute; top: 12px; right: 18px; background: transparent; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; outline: none;">&times;</button>
+            <i class="fa-solid fa-lock" style="font-size: 44px; color: var(--danger-color); margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.3));"></i>
+            <h3 style="margin-bottom: 12px; font-weight: 700; font-size: 20px; color: var(--text-main);">License Required</h3>
+            <p id="paywall-lock-message" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px; line-height: 1.5;">Your 15-day free trial has ended. Please purchase a license key to unlock unlimited downloading capabilities.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; text-align: left; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--accent-color); letter-spacing: 0.5px; margin-bottom: 8px;">Available Licensing Plans</div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
+                    <span><i class="fa-solid fa-key" style="color: var(--text-muted); margin-right: 5px;"></i> 1 PC License (Lifetime)</span>
+                    <span style="font-weight: 700; color: var(--success-color);">$24.99</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
+                    <span><i class="fa-solid fa-key" style="color: var(--text-muted); margin-right: 5px;"></i> 2 PCs License (Lifetime)</span>
+                    <span style="font-weight: 700; color: var(--success-color);">$39.99</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; padding-bottom: 2px;">
+                    <span><i class="fa-solid fa-key" style="color: var(--text-muted); margin-right: 5px;"></i> 3 PCs License (Lifetime)</span>
+                    <span style="font-weight: 700; color: var(--success-color);">$49.99</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button id="btn-paywall-buy" class="btn primary" style="flex: 1; padding: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; border-radius: 6px; background: var(--accent-gradient); border: none; color: white;">
+                    <i class="fa-solid fa-cart-shopping"></i> Purchase License
+                </button>
+                <button id="btn-paywall-logout" class="btn secondary" style="padding: 10px 15px; border-color: var(--border-color); color: var(--text-muted); background: transparent; cursor: pointer; border-radius: 6px; border: 1px solid var(--border-color);">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

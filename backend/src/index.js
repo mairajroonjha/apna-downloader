@@ -923,6 +923,28 @@ export default {
                         env.DB.prepare("INSERT INTO subscriptions (user_id, plan_type, status, trial_end) VALUES (?, 'trial', 'expired', NULL)").bind(userId)
                     ]);
 
+                    // Send Welcome & Trial Email
+                    const welcomeHtml = `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                            <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px;">Welcome to Apna Downloader! 🚀</h2>
+                            <p>Hi ${firstName},</p>
+                            <p>Thank you for signing up using Google! Your account has been registered successfully. You are ready to accelerate your downloads at maximum speed!</p>
+                            <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #cbd5e1;">
+                                <h4 style="margin: 0 0 10px 0; color: #0f172a;">Account Overview:</h4>
+                                <p style="margin: 5px 0;"><strong>Registered Email:</strong> ${email}</p>
+                                <p style="margin: 5px 0;"><strong>Account Status:</strong> Free Trial Active</p>
+                                <p style="margin: 5px 0;"><strong>Active Device Slots:</strong> 1 Slot Enabled</p>
+                            </div>
+                            <p>To upgrade your account to the <strong>Lifetime Premium Plan</strong> (unlimited download splitting and speed), simply log in to your portal and submit a payment claim.</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="https://apna-downloader.pages.dev/portal" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Go to Customer Portal</a>
+                            </div>
+                            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                            <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
+                        </div>
+                    `;
+                    ctx.waitUntil(sendEmail(email, "Welcome to Apna Downloader - Free Trial Active! 🚀", welcomeHtml, env));
+
                     const token = await signJwt({ userId, email }, JWT_SECRET);
                     return new Response(JSON.stringify({ success: true, token, email }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 }

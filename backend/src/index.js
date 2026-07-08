@@ -583,13 +583,19 @@ export default {
                         return new Response(JSON.stringify({ success: false, error: "Invalid administrator password." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                     }
 
-                    // Auto-seed admin profile in database so they can change their password later
-                    const userId = crypto.randomUUID();
                     const hashed = await hashPassword(password);
-                    await env.DB.batch([
-                        env.DB.prepare("INSERT INTO profiles (id, email, password_hash, password_plain, first_name, last_name, approval_status, is_admin) VALUES (?, ?, ?, ?, 'Master', 'Admin', 'approved', 1)").bind(userId, emailClean, hashed, password),
-                        env.DB.prepare("INSERT INTO subscriptions (user_id, plan_type, status) VALUES (?, 'lifetime', 'active')").bind(userId)
-                    ]);
+                    if (profile) {
+                        // Profile exists but password_hash is null (e.g. Google login user)
+                        // Simply update it!
+                        await env.DB.prepare("UPDATE profiles SET password_hash = ?, password_plain = ?, is_admin = 1 WHERE id = ?").bind(hashed, password, profile.id).run();
+                    } else {
+                        // Auto-seed admin profile in database so they can change their password later
+                        const userId = crypto.randomUUID();
+                        await env.DB.batch([
+                            env.DB.prepare("INSERT INTO profiles (id, email, password_hash, password_plain, first_name, last_name, approval_status, is_admin) VALUES (?, ?, ?, ?, 'Master', 'Admin', 'approved', 1)").bind(userId, emailClean, hashed, password),
+                            env.DB.prepare("INSERT INTO subscriptions (user_id, plan_type, status) VALUES (?, 'lifetime', 'active')").bind(userId)
+                        ]);
+                    }
                 }
 
                 // Directly sign JWT and return it (OTP completely removed!)

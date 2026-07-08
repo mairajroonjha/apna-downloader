@@ -273,16 +273,18 @@ function switchAdminTab(tabName) {
     const tabRoles = document.getElementById("admin-tab-roles");
     const tabClaims = document.getElementById("admin-tab-claims");
     const tabSupport = document.getElementById("admin-tab-support");
+    const tabSettings = document.getElementById("admin-tab-settings");
     
     const pageUsers = document.getElementById("admin-page-users");
     const pagePricing = document.getElementById("admin-page-pricing");
     const pageRoles = document.getElementById("admin-page-roles");
     const pageClaims = document.getElementById("admin-page-claims");
     const pageSupport = document.getElementById("admin-page-support");
+    const pageSettings = document.getElementById("admin-page-settings");
     
     // Reset active states
-    [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport].forEach(btn => btn?.classList.remove("active"));
-    [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport].forEach(page => {
+    [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport, tabSettings].forEach(btn => btn?.classList.remove("active"));
+    [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport, pageSettings].forEach(page => {
         if (page) page.style.display = "none";
     });
     
@@ -304,6 +306,9 @@ function switchAdminTab(tabName) {
         tabSupport?.classList.add("active");
         if (pageSupport) pageSupport.style.display = "block";
         loadSupportMessages();
+    } else if (tabName === 'settings') {
+        tabSettings?.classList.add("active");
+        if (pageSettings) pageSettings.style.display = "block";
     }
 }
 
@@ -404,7 +409,7 @@ async function handleSendOtpSubmit(event) {
     
     const btn = document.getElementById("btn-send-otp");
     btn.disabled = true;
-    btn.innerText = "Sending code...";
+    btn.innerText = "Logging in...";
     
     try {
         const response = await fetch(`${BACKEND_URL}/api/admin/auth/send-otp`, {
@@ -415,11 +420,18 @@ async function handleSendOtpSubmit(event) {
         
         const data = await response.json();
         if (data.success) {
-            currentAdminEmail = email;
-            document.getElementById("otp-step-1").style.display = "none";
-            document.getElementById("otp-step-2").style.display = "block";
+            if (data.token) {
+                localStorage.setItem("admin_key", data.token);
+                adminKey = data.token;
+                showDashboard();
+                switchAdminTab('users');
+            } else {
+                currentAdminEmail = email;
+                document.getElementById("otp-step-1").style.display = "none";
+                document.getElementById("otp-step-2").style.display = "block";
+            }
         } else {
-            authError.innerText = data.error || "Failed to request code.";
+            authError.innerText = data.error || "Failed to login.";
             authError.style.display = "block";
         }
     } catch(e) {
@@ -427,7 +439,7 @@ async function handleSendOtpSubmit(event) {
         authError.style.display = "block";
     } finally {
         btn.disabled = false;
-        btn.innerText = "Send Verification Code";
+        btn.innerText = "Login to Console";
     }
 }
 
@@ -1134,6 +1146,60 @@ async function deleteSupportMessage(id) {
     }
 }
 
+async function handleAdminChangePasswordSubmit(event) {
+    event.preventDefault();
+    const toast = document.getElementById("settings-success-toast");
+    toast.style.display = "none";
+    
+    const newPassword = document.getElementById("settings-new-password").value;
+    const confirmPassword = document.getElementById("settings-confirm-password").value;
+    
+    if (newPassword !== confirmPassword) {
+        toast.style.display = "block";
+        toast.style.background = "rgba(239,68,68,0.12)";
+        toast.style.color = "var(--danger-color)";
+        toast.style.borderColor = "rgba(239,68,68,0.25)";
+        toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Error: Passwords do not match.`;
+        return;
+    }
+    
+    const btn = event.target.querySelector("button[type='submit']");
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Updating...`;
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/change-password`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${adminKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ password: newPassword })
+        });
+        const data = await response.json();
+        if (data.success) {
+            toast.style.display = "block";
+            toast.style.background = "rgba(16,185,129,0.12)";
+            toast.style.color = "var(--success-color)";
+            toast.style.borderColor = "rgba(16,185,129,0.25)";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> Admin password updated successfully in the database.`;
+            document.getElementById("settings-new-password").value = "";
+            document.getElementById("settings-confirm-password").value = "";
+        } else {
+            throw new Error(data.error || "Failed to update password");
+        }
+    } catch(e) {
+        toast.style.display = "block";
+        toast.style.background = "rgba(239,68,68,0.12)";
+        toast.style.color = "var(--danger-color)";
+        toast.style.borderColor = "rgba(239,68,68,0.25)";
+        toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-key"></i> Update Admin Password`;
+    }
+}
+
 window.renderAdminRoles = renderAdminRoles;
 window.handleAddAdminSubmit = handleAddAdminSubmit;
 window.revokeAdminRole = revokeAdminRole;
@@ -1149,4 +1215,5 @@ window.closeReceiptModal = closeReceiptModal;
 window.loadSupportMessages = loadSupportMessages;
 window.resolveSupportMessage = resolveSupportMessage;
 window.deleteSupportMessage = deleteSupportMessage;
+window.handleAdminChangePasswordSubmit = handleAdminChangePasswordSubmit;
 window.addEventListener("DOMContentLoaded", init);

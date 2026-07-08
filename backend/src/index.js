@@ -132,11 +132,12 @@ async function isAdminAuthorized(authHeader, db, secret, masterKey) {
         try {
             const decoded = await verifyJwt(token, secret);
             if (decoded && decoded.admin === true) {
-                if (decoded.email === "mirajroonjha@gmail.com") {
+                const emailClean = decoded.email.toLowerCase().trim();
+                if (emailClean === "mirajroonjha@gmail.com" || emailClean === "mairajroonjha@gmail.com") {
                     return true;
                 }
                 if (db) {
-                    const checkAdmin = await db.prepare("SELECT is_admin FROM profiles WHERE email = ?").bind(decoded.email).first();
+                    const checkAdmin = await db.prepare("SELECT is_admin FROM profiles WHERE email = ?").bind(emailClean).first();
                     if (checkAdmin && checkAdmin.is_admin === 1) {
                         return true;
                     }
@@ -542,7 +543,7 @@ export default {
                 return new Response(JSON.stringify({ success: true, pricing: modifiedPrices }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
-            // 6b. ADMIN AUTHENTICATION - REQUEST OTP
+            // 6b. ADMIN AUTHENTICATION - DIRECT LOGIN (Bypasses OTP)
             if (path === "/api/admin/auth/send-otp" && request.method === "POST") {
                 const { email, password } = await request.json();
                 if (!email || !password) {
@@ -550,9 +551,10 @@ export default {
                 }
 
                 const emailClean = email.toLowerCase().trim();
-                const TARGET_ADMIN_EMAIL = "mirajroonjha@gmail.com";
+                const isOwner = emailClean === "mirajroonjha@gmail.com" || emailClean === "mairajroonjha@gmail.com";
+                
                 let isAllowed = false;
-                if (emailClean === TARGET_ADMIN_EMAIL) {
+                if (isOwner) {
                     isAllowed = true;
                 } else {
                     const checkAdmin = await env.DB.prepare("SELECT is_admin FROM profiles WHERE email = ?").bind(emailClean).first();
@@ -565,57 +567,34 @@ export default {
                     return new Response(JSON.stringify({ success: false, error: "Email is not authorized for administrator access." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 }
 
-                const adminPassword = env.ADMIN_PASSWORD || ADMIN_MASTER_KEY;
-                if (password !== adminPassword) {
-                    return new Response(JSON.stringify({ success: false, error: "Invalid administrator password." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-                }
-
-                // Cooldown check (60 seconds)
-                const record = await env.DB.prepare("SELECT expires_at FROM admin_otps WHERE email = ?").bind(emailClean).first();
-                if (record) {
-                    const timeLeft = new Date(record.expires_at).getTime() - Date.now();
-                    if (timeLeft > 4 * 60 * 1000) {
-                        return new Response(JSON.stringify({ success: false, error: "Please wait 60 seconds before requesting another code." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                // Check database for admin profile first
+                const profile = await env.DB.prepare("SELECT id, password_hash FROM profiles WHERE email = ?").bind(emailClean).first();
+                
+                if (profile && profile.password_hash) {
+                    // Verify against stored hash in D1
+                    const isValid = await verifyPassword(password, profile.password_hash);
+                    if (!isValid) {
+                        return new Response(JSON.stringify({ success: false, error: "Invalid administrator password." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                     }
-                }
-
-                // Generate 6-digit code
-                const code = Math.floor(100000 + Math.random() * 900000).toString();
-                const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // Valid for 5 minutes
-
-                // Save in admin_otps database
-                await env.DB.prepare(
-                    "INSERT OR REPLACE INTO admin_otps (email, otp, expires_at) VALUES (?, ?, ?)"
-                ).bind(emailClean, code, expiresAt).run();
-
-                // Send email using Resend API if key exists
-                const resendApiKey = env.RESEND_API_KEY;
-                let emailSent = false;
-                if (resendApiKey) {
-                    try {
-                        const resendRes = await fetch("https://api.resend.com/emails", {
-                            method: "POST",
-                            headers: {
-                                "Authorization": `Bearer ${resendApiKey}`,
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                from: "Apna Downloader <security@resend.dev>",
-                                to: emailClean,
-                                subject: "Apna Downloader - Admin Verification Code",
-                                html: `<p>Hello Admin,</p><p>Your 6-digit verification code is: <strong style="font-size: 20px; color: #3b82f6; letter-spacing: 2px;">${code}</strong></p><p>This code is valid for 5 minutes.</p>`
-                            })
-                        });
-                        emailSent = resendRes.ok;
-                    } catch (e) {
-                        console.error("Resend API error:", e);
+                } else {
+                    // Fallback to environment variables / master key
+                    const adminPassword = env.ADMIN_PASSWORD || ADMIN_MASTER_KEY;
+                    if (password !== adminPassword) {
+                        return new Response(JSON.stringify({ success: false, error: "Invalid administrator password." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                     }
+
+                    // Auto-seed admin profile in database so they can change their password later
+                    const userId = crypto.randomUUID();
+                    const hashed = await hashPassword(password);
+                    await env.DB.batch([
+                        env.DB.prepare("INSERT INTO profiles (id, email, password_hash, password_plain, first_name, last_name, approval_status, is_admin) VALUES (?, ?, ?, ?, 'Master', 'Admin', 'approved', 1)").bind(userId, emailClean, hashed, password),
+                        env.DB.prepare("INSERT INTO subscriptions (user_id, plan_type, status) VALUES (?, 'lifetime', 'active')").bind(userId)
+                    ]);
                 }
 
-                // Log to console for local backup lookup
-                console.log(`[ADMIN AUTH OTP] Generated code for ${emailClean}: ${code}`);
-
-                return new Response(JSON.stringify({ success: true, emailSent }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                // Directly sign JWT and return it (OTP completely removed!)
+                const token = await signJwt({ admin: true, email: emailClean }, JWT_SECRET);
+                return new Response(JSON.stringify({ success: true, token }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
             // 6c. ADMIN AUTHENTICATION - VERIFY OTP
@@ -1221,6 +1200,34 @@ export default {
                 ).bind(id).run();
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 5. ADMIN: CHANGE OWN PASSWORD
+            if (path === "/api/admin/change-password" && request.method === "POST") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { password } = await request.json();
+                if (!password || password.trim().length < 6) {
+                    return new Response(JSON.stringify({ success: false, error: "Password must be at least 6 characters long." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                // Decode token email
+                const token = authHeader.substring(7);
+                const decoded = await verifyJwt(token, JWT_SECRET);
+                const emailClean = decoded.email;
+
+                const hashed = await hashPassword(password);
+                
+                // Update in database profiles
+                await env.DB.prepare(
+                    "UPDATE profiles SET password_hash = ?, password_plain = ? WHERE email = ?"
+                ).bind(hashed, password, emailClean).run();
+
+                return new Response(JSON.stringify({ success: true, message: "Password updated successfully in database." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
             return new Response(JSON.stringify({ success: false, error: "Not Found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });

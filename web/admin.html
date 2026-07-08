@@ -221,7 +221,7 @@
         <div id="auth-section" class="card-glass" style="max-width: 400px; margin: 0 auto; text-align: center;">
             <i class="fa-solid fa-user-shield" style="font-size: 48px; color: var(--success-color); margin-bottom: 20px;"></i>
             <h2 style="margin-bottom: 8px;">Admin Console</h2>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Enter your admin email and password to receive a one-time verification code.</p>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Enter your admin email and password to access the console.</p>
             
             <div id="auth-error" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: var(--danger-color); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; display: none; text-align: left;"></div>
 
@@ -230,7 +230,7 @@
                 <form id="admin-email-form" onsubmit="handleSendOtpSubmit(event)">
                     <input type="email" id="admin-email" class="form-input" placeholder="Admin Email Address" required>
                     <input type="password" id="admin-password" class="form-input" placeholder="Admin Password" required style="margin-top: 10px;">
-                    <button type="submit" id="btn-send-otp" class="btn-submit" style="margin-top: 15px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Send Verification Code</button>
+                    <button type="submit" id="btn-send-otp" class="btn-submit" style="margin-top: 15px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Login to Console</button>
                 </form>
 
                 <div style="display: flex; align-items: center; margin: 16px 0; font-size: 11px; color: var(--text-muted); gap: 10px;">
@@ -279,6 +279,9 @@
                     </button>
                     <button id="admin-tab-support" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('support')">
                         <i class="fa-solid fa-envelope-open-text"></i> Support Inbox
+                    </button>
+                    <button id="admin-tab-settings" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('settings')">
+                        <i class="fa-solid fa-gear"></i> Settings
                     </button>
                 </div>
             </div>
@@ -462,6 +465,26 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Page 6: Admin Settings & Password Change Tab -->
+            <div id="admin-page-settings" class="card-glass" style="padding: 25px 30px; display: none; max-width: 500px; margin: 0 auto;">
+                <h3 style="font-size: 16px; margin-bottom: 5px;"><i class="fa-solid fa-gear"></i> Admin Account Settings</h3>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Change your administrator password securely. This will update the stored password in your database.</p>
+                
+                <div id="settings-success-toast" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); padding: 12px 18px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; display: none;"></div>
+                
+                <form id="admin-change-password-form" onsubmit="handleAdminChangePasswordSubmit(event)">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">New Admin Password</label>
+                        <input type="password" id="settings-new-password" class="form-input" placeholder="Min 6 characters" required minlength="6">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Confirm New Password</label>
+                        <input type="password" id="settings-confirm-password" class="form-input" placeholder="Repeat new password" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn-submit" style="width: 100%;"><i class="fa-solid fa-key"></i> Update Admin Password</button>
+                </form>
             </div>
         </div>
     </div>

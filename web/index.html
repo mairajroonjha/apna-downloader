@@ -185,29 +185,66 @@
         <section id="install-guide" style="scroll-margin-top: 160px;">
             <div style="text-align: center; margin-bottom: 45px;">
                 <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;">Setup & Installation Wizard</h2>
-                <p style="color: var(--text-muted); font-size: 14px;">Follow these simple steps to install, register, and activate your license.</p>
+                <p style="color: var(--text-muted); font-size: 14px;">Follow this complete roadmap to download, install, register, and activate your download engine.</p>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
-                <div class="card-glass card-3d" style="padding: 25px; text-align: left; position: relative;">
-                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">01</div>
-                    <h3 style="font-size: 15px; margin-bottom: 8px;">Download Installer</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Get the setup executable block for Windows directly from our downloads page.</p>
+            <!-- Quick Download Center -->
+            <div class="card-glass" style="margin-bottom: 40px; padding: 25px 30px; text-align: center; background: rgba(59, 130, 246, 0.03); border-color: rgba(59, 130, 246, 0.15);">
+                <h3 style="font-size: 18px; margin-bottom: 10px; font-weight: 700;"><i class="fa-solid fa-download"></i> Quick Download Center</h3>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Get the latest desktop client application and the companion Chrome web extension package.</p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://github.com/mairajroonjha/apna-downloader/releases/latest" target="_blank" class="btn-nav" style="padding: 12px 24px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fa-brands fa-windows"></i> Download Desktop Client (.exe)
+                    </a>
+                    <a href="browser-extension.zip" download class="btn-nav" style="padding: 12px 24px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="fa-brands fa-chrome"></i> Download Chrome Extension (.zip)
+                    </a>
                 </div>
-                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
-                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">02</div>
-                    <h3 style="font-size: 15px; margin-bottom: 8px;">Run Setup Wizard</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Double-click the installer icon. The client installs instantly and launches.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+                <!-- Step 1: Register & Install -->
+                <div class="card-glass" style="padding: 25px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 32px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">01</span>
+                        <div style="font-size: 20px; color: var(--accent-color);"><i class="fa-solid fa-user-plus"></i></div>
+                    </div>
+                    <h3 style="font-size: 16px; margin-bottom: 12px; font-weight: 700;">Account & Desktop Setup</h3>
+                    <ul style="font-size: 12px; color: var(--text-muted); padding-left: 15px; line-height: 1.8;">
+                        <li style="margin-bottom: 8px;">Click **Customer Portal** in the navigation header to register or log in.</li>
+                        <li style="margin-bottom: 8px;">Download and launch the Windows Installer (`.exe`) from the Download Center.</li>
+                        <li>Log in to the desktop app using the same registered email credentials.</li>
+                    </ul>
                 </div>
-                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
-                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">03</div>
-                    <h3 style="font-size: 15px; margin-bottom: 8px;">Register Account</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Register inside the app via Google Sign-In or your manual email credentials.</p>
+
+                <!-- Step 2: Install Chrome Extension -->
+                <div class="card-glass" style="padding: 25px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 32px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">02</span>
+                        <div style="font-size: 20px; color: #10b981;"><i class="fa-solid fa-puzzle-piece"></i></div>
+                    </div>
+                    <h3 style="font-size: 16px; margin-bottom: 12px; font-weight: 700;">Install Browser Extension</h3>
+                    <ul style="font-size: 12px; color: var(--text-muted); padding-left: 15px; line-height: 1.8;">
+                        <li style="margin-bottom: 8px;">Download the `browser-extension.zip` file and extract it on your computer.</li>
+                        <li style="margin-bottom: 8px;">Open Google Chrome and go to `chrome://extensions/` URL address.</li>
+                        <li style="margin-bottom: 8px;">Turn on **Developer Mode** toggle in the top-right corner.</li>
+                        <li>Click **Load unpacked** in the top-left and select the extracted folder.</li>
+                    </ul>
                 </div>
-                <div class="card-glass card-3d" style="padding: 25px; text-align: left;">
-                    <div style="font-size: 40px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">04</div>
-                    <h3 style="font-size: 15px; margin-bottom: 8px;">Activate Slots</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">Activate your 15-day free trial or enter a license key to allocate device slots.</p>
+
+                <!-- Step 3: Payment & License Activation -->
+                <div class="card-glass" style="padding: 25px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 32px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">03</span>
+                        <div style="font-size: 20px; color: var(--warning-color);"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                    <h3 style="font-size: 16px; margin-bottom: 12px; font-weight: 700;">Purchase & Activation</h3>
+                    <ul style="font-size: 12px; color: var(--text-muted); padding-left: 15px; line-height: 1.8;">
+                        <li style="margin-bottom: 8px;">Log in to the **Customer Portal** and navigate to **Upgrade License**.</li>
+                        <li style="margin-bottom: 8px;">Select a plan and transfer the payment to **EasyPaisa** or **NayaPay** (using numbers or QR codes).</li>
+                        <li style="margin-bottom: 8px;">Submit your 11-digit Transaction ID (TID) along with the transfer receipt.</li>
+                        <li>Your license will activate automatically within 1-2 hours upon admin approval!</li>
+                    </ul>
                 </div>
             </div>
         </section>

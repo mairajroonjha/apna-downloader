@@ -401,7 +401,7 @@ async function init() {
                     alert(res.error || "Failed to activate free trial.");
                 }
             } else {
-                window.api.openExternal('https://apna-downloader-backend.mirajroonjha.workers.dev/buy');
+                window.api.openExternal('https://apna-downloader.pages.dev/');
             }
         });
     }
@@ -2903,7 +2903,7 @@ const btnProfileBuy = document.getElementById("btn-profile-buy");
 if (btnProfileBuy) {
     btnProfileBuy.addEventListener('click', () => {
         if (window.api && window.api.openExternal) {
-            window.api.openExternal('https://apna-downloader-backend.mirajroonjha.workers.dev/buy');
+            window.api.openExternal('https://apna-downloader.pages.dev/');
         }
     });
 }

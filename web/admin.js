@@ -272,14 +272,17 @@ function switchAdminTab(tabName) {
     const tabPricing = document.getElementById("admin-tab-pricing");
     const tabRoles = document.getElementById("admin-tab-roles");
     const tabClaims = document.getElementById("admin-tab-claims");
+    const tabSupport = document.getElementById("admin-tab-support");
+    
     const pageUsers = document.getElementById("admin-page-users");
     const pagePricing = document.getElementById("admin-page-pricing");
     const pageRoles = document.getElementById("admin-page-roles");
     const pageClaims = document.getElementById("admin-page-claims");
+    const pageSupport = document.getElementById("admin-page-support");
     
     // Reset active states
-    [tabUsers, tabPricing, tabRoles, tabClaims].forEach(btn => btn?.classList.remove("active"));
-    [pageUsers, pagePricing, pageRoles, pageClaims].forEach(page => {
+    [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport].forEach(btn => btn?.classList.remove("active"));
+    [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport].forEach(page => {
         if (page) page.style.display = "none";
     });
     
@@ -297,6 +300,10 @@ function switchAdminTab(tabName) {
         tabClaims?.classList.add("active");
         if (pageClaims) pageClaims.style.display = "block";
         loadAdminClaims();
+    } else if (tabName === 'support') {
+        tabSupport?.classList.add("active");
+        if (pageSupport) pageSupport.style.display = "block";
+        loadSupportMessages();
     }
 }
 
@@ -1011,6 +1018,122 @@ function closeReceiptModal() {
     document.getElementById("view-receipt-modal").style.display = "none";
 }
 
+async function loadSupportMessages() {
+    const tbody = document.getElementById("support-table-body");
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/support-messages`, {
+            headers: { "Authorization": `Bearer ${adminKey}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+            renderSupportMessages(data.messages);
+        } else {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger-color);">Error: ${data.error}</td></tr>`;
+        }
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger-color);">Failed to load messages.</td></tr>`;
+    }
+}
+
+function renderSupportMessages(messages) {
+    const tbody = document.getElementById("support-table-body");
+    tbody.innerHTML = "";
+    if (!messages || messages.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No support inquiries received yet.</td></tr>`;
+        return;
+    }
+
+    messages.forEach(m => {
+        const dateStr = new Date(m.created_at || Date.now()).toLocaleString();
+        
+        let statusBadge = '';
+        let actionButtons = '';
+        
+        if (m.status === 'resolved') {
+            statusBadge = `<span class="badge success">RESOLVED</span>`;
+            actionButtons = `
+                <button class="action-btn danger" onclick="deleteSupportMessage(${m.id})" style="margin: 0; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger-color);">
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+            `;
+        } else {
+            statusBadge = `<span class="badge warning">PENDING</span>`;
+            actionButtons = `
+                <button class="action-btn" onclick="resolveSupportMessage(${m.id})" style="margin: 0; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--success-color);">
+                    <i class="fa-solid fa-check"></i> Mark Resolved
+                </button>
+                <button class="action-btn danger" onclick="deleteSupportMessage(${m.id})" style="margin: 0; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger-color);">
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+            `;
+        }
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td style="color: var(--text-muted); font-size: 11px; white-space: nowrap;">${dateStr}</td>
+            <td style="font-weight: 600;">${m.name}</td>
+            <td>
+                <a href="mailto:${m.email}?subject=Re: ${encodeURIComponent(m.subject)}" style="color: var(--accent-color); font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-reply"></i> ${m.email}
+                </a>
+            </td>
+            <td style="font-weight: 600; color: var(--text-main); font-size: 12px;">${m.subject}</td>
+            <td style="max-width: 250px; overflow-wrap: break-word; color: var(--text-muted); font-size: 12px; line-height: 1.4;">${m.message}</td>
+            <td>${statusBadge}</td>
+            <td style="white-space: nowrap;">
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    ${actionButtons}
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+async function resolveSupportMessage(id) {
+    if (!confirm("Are you sure you want to mark this message as resolved?")) return;
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/support-messages/resolve`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${adminKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id })
+        });
+        const data = await response.json();
+        if (data.success) {
+            loadSupportMessages();
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (e) {
+        alert("Failed to resolve message.");
+    }
+}
+
+async function deleteSupportMessage(id) {
+    if (!confirm("Are you sure you want to permanently delete this support message?")) return;
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/support-messages/delete`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${adminKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id })
+        });
+        const data = await response.json();
+        if (data.success) {
+            loadSupportMessages();
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (e) {
+        alert("Failed to delete message.");
+    }
+}
+
 window.renderAdminRoles = renderAdminRoles;
 window.handleAddAdminSubmit = handleAddAdminSubmit;
 window.revokeAdminRole = revokeAdminRole;
@@ -1023,4 +1146,7 @@ window.closeRejectClaimModal = closeRejectClaimModal;
 window.handleRejectClaimSubmit = handleRejectClaimSubmit;
 window.viewReceiptImage = viewReceiptImage;
 window.closeReceiptModal = closeReceiptModal;
+window.loadSupportMessages = loadSupportMessages;
+window.resolveSupportMessage = resolveSupportMessage;
+window.deleteSupportMessage = deleteSupportMessage;
 window.addEventListener("DOMContentLoaded", init);

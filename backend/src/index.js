@@ -1152,6 +1152,77 @@ export default {
                 return new Response(object.body, { headers });
             }
 
+            // ==================== SUPPORT INBOX PATHS ====================
+
+            // 1. PUBLIC SUBMIT MESSAGE
+            if (path === "/api/support" && request.method === "POST") {
+                const { name, email, subject, message } = await request.json();
+                if (!name || !email || !subject || !message) {
+                    return new Response(JSON.stringify({ success: false, error: "Name, email, subject, and message are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                await env.DB.prepare(
+                    "INSERT INTO support_messages (name, email, subject, message) VALUES (?, ?, ?, ?)"
+                ).bind(name.trim(), email.trim(), subject.trim(), message.trim()).run();
+
+                return new Response(JSON.stringify({ success: true, message: "Your message has been submitted. Our team will review it." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 2. ADMIN: GET ALL MESSAGES
+            if (path === "/api/admin/support-messages" && request.method === "GET") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { results } = await env.DB.prepare(
+                    "SELECT * FROM support_messages ORDER BY created_at DESC"
+                ).all();
+
+                return new Response(JSON.stringify({ success: true, messages: results }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 3. ADMIN: RESOLVE MESSAGE
+            if (path === "/api/admin/support-messages/resolve" && request.method === "POST") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { id } = await request.json();
+                if (!id) {
+                    return new Response(JSON.stringify({ success: false, error: "Message ID is required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                await env.DB.prepare(
+                    "UPDATE support_messages SET status = 'resolved' WHERE id = ?"
+                ).bind(id).run();
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 4. ADMIN: DELETE MESSAGE
+            if (path === "/api/admin/support-messages/delete" && request.method === "POST") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { id } = await request.json();
+                if (!id) {
+                    return new Response(JSON.stringify({ success: false, error: "Message ID is required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                await env.DB.prepare(
+                    "DELETE FROM support_messages WHERE id = ?"
+                ).bind(id).run();
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
             return new Response(JSON.stringify({ success: false, error: "Not Found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
         } catch (err) {

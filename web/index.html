@@ -383,23 +383,53 @@
     <!-- Active Highlighting Script and Interactive Form handling -->
     <script src="app.js"></script>
     <script>
-        // Interactive support form submission simulation
-        function handleSupportSubmit(event) {
+        // Interactive support form submission
+        async function handleSupportSubmit(event) {
             event.preventDefault();
             const successToast = document.getElementById("contact-success-toast");
             const form = document.getElementById("contact-form");
+            const btn = form.querySelector("button[type='submit']");
             
-            // Show toast message
-            successToast.style.display = "block";
-            form.reset();
+            const name = document.getElementById("contact-name").value;
+            const email = document.getElementById("contact-email").value;
+            const subjectSelect = document.getElementById("contact-subject");
+            const subject = subjectSelect.options[subjectSelect.selectedIndex].text;
+            const message = document.getElementById("contact-message").value;
             
-            // Scroll to toast container
-            successToast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Submitting...`;
             
-            // Hide toast after 8 seconds
-            setTimeout(() => {
-                successToast.style.display = "none";
-            }, 8000);
+            try {
+                const res = await fetch("https://apna-downloader-backend.mirajroonjha.workers.dev/api/support", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, subject, message })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    successToast.style.display = "block";
+                    successToast.style.background = "rgba(16,185,129,0.12)";
+                    successToast.style.color = "var(--success-color)";
+                    successToast.style.borderColor = "rgba(16,185,129,0.25)";
+                    successToast.innerHTML = `<i class="fa-solid fa-circle-check"></i> Thank you! Your support message has been submitted. Our team will review it.`;
+                    form.reset();
+                } else {
+                    throw new Error(data.error || "Failed to submit message");
+                }
+            } catch(e) {
+                successToast.style.display = "block";
+                successToast.style.background = "rgba(239,68,68,0.12)";
+                successToast.style.color = "var(--danger-color)";
+                successToast.style.borderColor = "rgba(239,68,68,0.25)";
+                successToast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Submit Inquiry`;
+                successToast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                setTimeout(() => {
+                    successToast.style.display = "none";
+                }, 8000);
+            }
         }
 
         // Active class nav link scroll highlighting

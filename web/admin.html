@@ -277,6 +277,9 @@
                     <button id="admin-tab-claims" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('claims')">
                         <i class="fa-solid fa-file-invoice-dollar"></i> Payment Claims
                     </button>
+                    <button id="admin-tab-support" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('support')">
+                        <i class="fa-solid fa-envelope-open-text"></i> Support Inbox
+                    </button>
                 </div>
             </div>
 
@@ -429,6 +432,33 @@
                         </thead>
                         <tbody id="claims-table-body">
                             <!-- Populated dynamically via admin.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page 5: Support Inbox Messages Tab -->
+            <div id="admin-page-support" class="card-glass" style="padding: 25px 30px; display: none;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; margin: 0 0 4px 0;"><i class="fa-solid fa-envelope-open-text"></i> Support Center Inbox</h3>
+                    <p style="color: var(--text-muted); font-size: 12px; margin: 0;">View support messages submitted by visitors on the landing page. Click resolved once completed or reply to them directly via email.</p>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Sender Name</th>
+                                <th>Sender Email</th>
+                                <th>Subject</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="support-table-body">
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading support messages...</td></tr>
                         </tbody>
                     </table>
                 </div>

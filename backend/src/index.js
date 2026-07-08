@@ -1414,6 +1414,49 @@ export default {
                 return new Response(JSON.stringify({ success: true, message: "Password updated successfully in database." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
+            // 6. ADMIN: BROADCAST CUSTOM EMAIL
+            if (path === "/api/admin/emails/send" && request.method === "POST") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { recipient, subject, content } = await request.json();
+                if (!recipient || !subject || !content) {
+                    return new Response(JSON.stringify({ success: false, error: "Recipient, subject, and content are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                // Construct clean HTML layout wrapper for custom content
+                const emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <h2 style="color: #2563eb; margin: 0;">Apna Downloader</h2>
+                            <p style="font-size: 12px; color: #64748b; margin: 5px 0;">Official Update from Team</p>
+                        </div>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
+                        <div style="font-size: 14px; line-height: 1.6;">
+                            ${content.replace(/\n/g, '<br>')}
+                        </div>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                        <p style="font-size: 11px; color: #94a3b8; text-align: center;">You received this email because you registered on Apna Downloader.<br>Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
+                    </div>
+                `;
+
+                if (recipient === "all") {
+                    const users = await env.DB.prepare("SELECT email FROM profiles").all();
+                    if (users.results && users.results.length > 0) {
+                        for (const u of users.results) {
+                            ctx.waitUntil(sendEmail(u.email, subject, emailHtml, env));
+                        }
+                    }
+                    return new Response(JSON.stringify({ success: true, message: `Broadcast custom email queued successfully for all ${users.results.length} registered users!` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                } else {
+                    ctx.waitUntil(sendEmail(recipient, subject, emailHtml, env));
+                    return new Response(JSON.stringify({ success: true, message: `Custom email sent successfully to ${recipient}!` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+            }
+
             return new Response(JSON.stringify({ success: false, error: "Not Found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
         } catch (err) {

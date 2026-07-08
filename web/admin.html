@@ -280,6 +280,9 @@
                     <button id="admin-tab-support" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('support')">
                         <i class="fa-solid fa-envelope-open-text"></i> Support Inbox
                     </button>
+                    <button id="admin-tab-email" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('email')">
+                        <i class="fa-solid fa-paper-plane"></i> Broadcast Email
+                    </button>
                     <button id="admin-tab-settings" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('settings')">
                         <i class="fa-solid fa-gear"></i> Settings
                     </button>
@@ -484,6 +487,34 @@
                         <input type="password" id="settings-confirm-password" class="form-input" placeholder="Repeat new password" required minlength="6">
                     </div>
                     <button type="submit" class="btn-submit" style="width: 100%;"><i class="fa-solid fa-key"></i> Update Admin Password</button>
+                </form>
+            </div>
+
+            <!-- Page 7: Broadcast & Custom Email Tab -->
+            <div id="admin-page-email" class="card-glass" style="padding: 25px 30px; display: none; max-width: 600px; margin: 0 auto;">
+                <h3 style="font-size: 16px; margin-bottom: 5px;"><i class="fa-solid fa-paper-plane"></i> Broadcast Custom Email</h3>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Send a customized announcement, promo code, discount, or update email directly to your users.</p>
+                
+                <div id="email-success-toast" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); padding: 12px 18px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; display: none;"></div>
+                <div id="email-error-toast" style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); color: var(--danger-color); padding: 12px 18px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; display: none;"></div>
+                
+                <form id="admin-send-email-form" onsubmit="handleAdminSendEmailSubmit(event)">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Recipient / Target Audience</label>
+                        <select id="email-recipient" class="form-input" style="background-color: var(--bg-primary); cursor: pointer;" required>
+                            <option value="all">📢 All Registered Users (Blast)</option>
+                        </select>
+                        <input type="text" id="email-recipient-custom" class="form-input" placeholder="Or enter single specific email address..." style="margin-top: 10px; font-size: 12px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Email Subject</label>
+                        <input type="text" id="email-subject" class="form-input" placeholder="e.g., Special 30% Off Lifetime Premium Plan! 🎁" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Email Content (HTML/Plain Text)</label>
+                        <textarea id="email-content" class="form-input" style="height: 200px; font-family: sans-serif; resize: vertical;" placeholder="Type your discount details or announcement here..." required></textarea>
+                    </div>
+                    <button type="submit" id="btn-send-custom-email" class="btn-submit" style="width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);"><i class="fa-solid fa-paper-plane"></i> Send Email Blast</button>
                 </form>
             </div>
         </div>

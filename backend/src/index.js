@@ -186,6 +186,23 @@ async function uploadBase64ToR2(base64Data, bucket) {
         return null;
     }
 }
+// Helper to construct redirect URLs while stripping hash parameters correctly
+function buildRedirectUrl(baseState, params) {
+    if (!baseState) return "";
+    let stateDecoded = decodeURIComponent(baseState);
+    let hash = "";
+    const hashIdx = stateDecoded.indexOf("#");
+    if (hashIdx !== -1) {
+        hash = stateDecoded.substring(hashIdx);
+        stateDecoded = stateDecoded.substring(0, hashIdx);
+    }
+    
+    const url = new URL(stateDecoded);
+    for (const [k, v] of Object.entries(params)) {
+        url.searchParams.set(k, v);
+    }
+    return url.toString() + hash;
+}
 
 // Router Logic
 export default {
@@ -890,7 +907,7 @@ export default {
                 }
 
                 // Check if redirect target is the admin panel
-                const isAdminTarget = state && decodeURIComponent(state).includes("admin.html");
+                const isAdminTarget = state && decodeURIComponent(state).toLowerCase().includes("admin");
 
                 if (isAdminTarget) {
                     const TARGET_ADMIN_EMAIL = "mirajroonjha@gmail.com";
@@ -906,7 +923,7 @@ export default {
                     }
 
                     if (!isAllowed) {
-                        const redirectUrl = `${decodeURIComponent(state)}?error=${encodeURIComponent("This Google account is not authorized as an administrator.")}`;
+                        const redirectUrl = buildRedirectUrl(state, { error: "This Google account is not authorized as an administrator." });
                         return new Response(null, {
                             status: 302,
                             headers: {
@@ -917,7 +934,7 @@ export default {
 
                     // Generate admin session token
                     const sessionToken = await signJwt({ admin: true, email: emailClean }, JWT_SECRET);
-                    const redirectUrl = `${decodeURIComponent(state)}?token=${sessionToken}&email=${emailClean}`;
+                    const redirectUrl = buildRedirectUrl(state, { token: sessionToken, email: emailClean });
                     return new Response(null, {
                         status: 302,
                         headers: {
@@ -931,7 +948,9 @@ export default {
                 let userId = user ? user.id : null;
 
                 if (!user) {
-                    const redirectUrl = state ? `${decodeURIComponent(state)}?error=${encodeURIComponent("This Google account is not registered. Please register first inside the Apna Downloader app.")}` : `https://apna-downloader-backend.mirajroonjha.workers.dev?error=NotRegistered`;
+                    const redirectUrl = state 
+                        ? buildRedirectUrl(state, { error: "This Google account is not registered. Please register first inside the Apna Downloader app." })
+                        : `https://apna-downloader-backend.mirajroonjha.workers.dev?error=NotRegistered`;
                     return new Response(null, {
                         status: 302,
                         headers: {
@@ -948,7 +967,9 @@ export default {
                 const sessionToken = await signJwt({ userId, email }, JWT_SECRET);
 
                 // Redirect user back to portal.html with token details
-                const redirectUrl = state ? `${decodeURIComponent(state)}?token=${sessionToken}&email=${email}` : `https://apna-downloader-backend.mirajroonjha.workers.dev?token=${sessionToken}&email=${email}`;
+                const redirectUrl = state 
+                    ? buildRedirectUrl(state, { token: sessionToken, email })
+                    : `https://apna-downloader-backend.mirajroonjha.workers.dev?token=${sessionToken}&email=${email}`;
                 
                 return new Response(null, {
                     status: 302,

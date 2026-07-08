@@ -204,13 +204,25 @@ function buildRedirectUrl(baseState, params) {
     return url.toString() + hash;
 }
 
-// Helper to send transactional emails via Resend API
+// Helper to send transactional emails via Resend
 async function sendEmail(to, subject, htmlContent, env) {
     const apiKey = env.RESEND_API_KEY;
     if (!apiKey) {
-        console.warn("[EMAIL] Skipping email delivery: RESEND_API_KEY is not configured in secrets.");
+        console.warn("[EMAIL] Skipping email delivery: RESEND_API_KEY is not configured.");
         return false;
     }
+    
+    let recipient = to.toLowerCase().trim();
+    let finalSubject = subject;
+    const isSandbox = !env.EMAIL_FROM || env.EMAIL_FROM.includes("onboarding@resend.dev") || env.EMAIL_FROM.includes("resend.dev");
+    
+    if (isSandbox && recipient !== "mirajroonjha@gmail.com") {
+        console.log(`[EMAIL SANDBOX REROUTING] Original recipient: ${to}. Rerouting to mirajroonjha@gmail.com due to unverified sandbox domain.`);
+        recipient = "mirajroonjha@gmail.com";
+        finalSubject = `[Sandbox for: ${to}] ${subject}`;
+    }
+    
+    const sender = env.EMAIL_FROM || "Apna Downloader <onboarding@resend.dev>";
     
     try {
         const response = await fetch("https://api.resend.com/emails", {
@@ -220,21 +232,23 @@ async function sendEmail(to, subject, htmlContent, env) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                from: "Apna Downloader <onboarding@resend.dev>",
-                to,
-                subject,
+                from: sender,
+                to: recipient,
+                subject: finalSubject,
                 html: htmlContent
             })
         });
         
-        const success = response.ok;
-        if (!success) {
+        if (!response.ok) {
             const errText = await response.text();
-            console.error(`[EMAIL] Resend returned non-ok status: ${response.status} - ${errText}`);
+            console.error(`[EMAIL ERROR] Resend returned status ${response.status}: ${errText}`);
+            return false;
         }
-        return success;
+        
+        console.log(`[EMAIL SUCCESS] Email sent successfully to ${recipient} (Subject: "${finalSubject}")`);
+        return true;
     } catch (e) {
-        console.error("[EMAIL] Failed to send email via Resend:", e);
+        console.error("[EMAIL ERROR] Failed to send email via Resend:", e);
         return false;
     }
 }
@@ -281,23 +295,27 @@ export default {
                     env.DB.prepare("INSERT INTO subscriptions (user_id, plan_type, status, trial_end) VALUES (?, 'trial', 'expired', NULL)").bind(userId)
                 ]);
 
-                // Send welcome email asynchronously
+                // Send Welcome & Trial Email
                 const welcomeHtml = `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #334155;">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <h2 style="color: #2563eb; margin: 0;">Welcome to Apna Downloader! 🚀</h2>
-                            <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your ultimate high-speed split downloader</p>
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                        <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px;">Welcome to Apna Downloader! 🚀</h2>
+                        <p>Hi ${first_name},</p>
+                        <p>Thank you for signing up! Your account has been registered successfully. You are ready to accelerate your downloads at maximum speed!</p>
+                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #cbd5e1;">
+                            <h4 style="margin: 0 0 10px 0; color: #0f172a;">Account Overview:</h4>
+                            <p style="margin: 5px 0;"><strong>Registered Email:</strong> ${email}</p>
+                            <p style="margin: 5px 0;"><strong>Account Status:</strong> Free Trial Active</p>
+                            <p style="margin: 5px 0;"><strong>Active Device Slots:</strong> 1 Slot Enabled</p>
                         </div>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p>Hello <strong>${first_name} ${last_name}</strong>,</p>
-                        <p>Thank you for registering an account on Apna Downloader SaaS.</p>
-                        <p>Your account is now ready! You are currently on the <strong>Free Trial version</strong>. You can use this plan to test unbinding configurations and slot limits.</p>
-                        <p>To upgrade to our premium lifetime package with unlimited high-speed downloads, please submit a payment proof inside your dashboard portal.</p>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">This is an automated system email. Please do not reply directly.</p>
+                        <p>To upgrade your account to the <strong>Lifetime Premium Plan</strong> (unlimited download splitting and speed), simply log in to your portal and submit a payment claim.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="https://apna-downloader.pages.dev/portal" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Go to Customer Portal</a>
+                        </div>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                        <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
                     </div>
                 `;
-                ctx.waitUntil(sendEmail(email, "Welcome to Apna Downloader - Free Trial Started! 🚀", welcomeHtml, env));
+                ctx.waitUntil(sendEmail(email, "Welcome to Apna Downloader - Free Trial Active! 🚀", welcomeHtml, env));
 
                 return new Response(JSON.stringify({ success: true, message: "Registration completed successfully! You can now log in." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
@@ -1070,32 +1088,22 @@ export default {
                     "INSERT INTO payment_claims (user_id, email, pricing_id, amount, transaction_id, receipt_image, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')"
                 ).bind(decoded.userId, decoded.email, pricing_id, parseFloat(amount), transaction_id.trim(), fileKey).run();
 
-                // Send payment claim receipt confirmation email
+                // Send Payment Claim Confirmation Email
                 const claimHtml = `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #334155;">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <h2 style="color: #f59e0b; margin: 0;">Payment Claim Under Review ⏱️</h2>
-                            <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your payment claim has been successfully submitted</p>
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                        <h2 style="color: #3b82f6; text-align: center; margin-bottom: 20px;">Payment Claim Received ⏱️</h2>
+                        <p>Hi,</p>
+                        <p>We have successfully received your payment claim for Apna Downloader Premium. Our billing team is currently verifying the transaction details.</p>
+                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #cbd5e1;">
+                            <h4 style="margin: 0 0 10px 0; color: #0f172a;">Transaction Overview:</h4>
+                            <p style="margin: 5px 0;"><strong>User Email:</strong> ${decoded.email}</p>
+                            <p style="margin: 5px 0;"><strong>Transaction ID:</strong> ${transaction_id}</p>
+                            <p style="margin: 5px 0;"><strong>Amount Paid:</strong> PKR ${amount}</p>
+                            <p style="margin: 5px 0;"><strong>Claim Status:</strong> Pending Verification (under review)</p>
                         </div>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p>Hello,</p>
-                        <p>We have successfully received your payment claim details for Apna Downloader SaaS. Our administrators are currently verifying the transfer receipt.</p>
-                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin: 20px 0;">
-                            <h3 style="margin-top: 0; font-size: 14px; color: #1e293b;">Transaction Details:</h3>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                                <tr>
-                                    <td style="padding: 4px 0; color: #64748b; width: 120px;">Transaction ID:</td>
-                                    <td style="padding: 4px 0; font-weight: 600;">${transaction_id.trim()}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 4px 0; color: #64748b;">Amount:</td>
-                                    <td style="padding: 4px 0; font-weight: 600;">PKR ${amount}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <p>Your payment will be approved and your premium account activated within <strong>24 hours</strong>. We will notify you by email as soon as the review is complete.</p>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">This is an automated system email. Please do not reply directly.</p>
+                        <p>Manual payment verification usually takes up to <strong>24 hours</strong>. Once your transaction is confirmed, your account will be upgraded instantly and you will receive an activation email.</p>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                        <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
                     </div>
                 `;
                 ctx.waitUntil(sendEmail(decoded.email, "Payment Claim Received - Under Verification ⏱️", claimHtml, env));
@@ -1183,37 +1191,28 @@ export default {
                     ).bind(`Approved by Admin. License key: ${licenseKey}`, claimId)
                 ]);
 
-                // Send payment claim approval confirmation email
-                const approvalHtml = `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #334155;">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <h2 style="color: #10b981; margin: 0;">Payment Approved! 🎉</h2>
-                            <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your Premium Lifetime Account is Activated</p>
+                // Send Payment Claim Approval / Premium License Active Email
+                const approveHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                        <h2 style="color: #10b981; text-align: center; margin-bottom: 20px;">Payment Approved - Account Upgraded! 🎉</h2>
+                        <p>Hi,</p>
+                        <p>Great news! We have verified your manual payment claim. Your account has been upgraded successfully to the <strong>Premium Lifetime License</strong>.</p>
+                        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #bbf7d0;">
+                            <h4 style="margin: 0 0 10px 0; color: #166534;">License Details:</h4>
+                            <p style="margin: 5px 0;"><strong>User Email:</strong> ${claim.email}</p>
+                            <p style="margin: 5px 0;"><strong>Upgrade Plan:</strong> ${plan_type.toUpperCase()} Premium</p>
+                            <p style="margin: 5px 0;"><strong>Active Device Slots:</strong> ${pc_slots} PC Slots enabled</p>
+                            <p style="margin: 15px 0 5px 0; font-size: 16px;"><strong>License Key:</strong> <code style="background-color: #ffffff; padding: 4px 8px; border-radius: 4px; border: 1px dashed #166534; font-weight: bold; color: #166534; font-family: monospace;">${licenseKey}</code></p>
                         </div>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p>Hello,</p>
-                        <p>We are pleased to inform you that your manual payment transfer receipt has been successfully verified and approved by the administrators.</p>
-                        <p>Your subscription is now updated to the premium tier.</p>
-                        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 6px; border: 1px solid #bbf7d0; margin: 20px 0; color: #166534;">
-                            <h3 style="margin-top: 0; font-size: 14px;">License Details:</h3>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                                <tr>
-                                    <td style="padding: 4px 0; color: #166534; width: 120px;">Selected Plan:</td>
-                                    <td style="padding: 4px 0; font-weight: 600;">${plan_type.toUpperCase()} (${pc_slots} PC Slots)</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 4px 0; color: #166534;">License Key:</td>
-                                    <td style="padding: 4px 0; font-weight: 700; font-family: monospace; font-size: 15px;">${licenseKey}</td>
-                                </tr>
-                            </table>
+                        <p>Please enter this license key in your Apna Downloader client app to activate your premium status. You can now split and accelerate your downloads with zero limits!</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="https://apna-downloader.pages.dev/portal" style="background-color: #10b981; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Go to Customer Portal</a>
                         </div>
-                        <p>Please launch your Apna Downloader client application and copy-paste this license key to activate your device slots and enjoy unlimited high-speed downloads!</p>
-                        <p>Thank you for choosing Apna Downloader!</p>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">This is an automated system email. Please do not reply directly.</p>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                        <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
                     </div>
                 `;
-                ctx.waitUntil(sendEmail(claim.email, "Payment Approved - Premium License Activated! 🎉", approvalHtml, env));
+                ctx.waitUntil(sendEmail(claim.email, "Payment Approved - Premium License Activated! 🎉", approveHtml, env));
 
                 return new Response(JSON.stringify({ success: true, message: "Claim approved and license activated successfully!" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
@@ -1230,7 +1229,7 @@ export default {
                     return new Response(JSON.stringify({ success: false, error: "Claim ID and rejection reason notes are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 }
 
-                const claim = await env.DB.prepare("SELECT status, email FROM payment_claims WHERE id = ?").bind(claimId).first();
+                const claim = await env.DB.prepare("SELECT email, status FROM payment_claims WHERE id = ?").bind(claimId).first();
                 if (!claim) {
                     return new Response(JSON.stringify({ success: false, error: "Claim record not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 }
@@ -1243,26 +1242,26 @@ export default {
                     "UPDATE payment_claims SET status = 'rejected', notes = ? WHERE id = ?"
                 ).bind(notes.trim(), claimId).run();
 
-                // Send payment claim rejection alert email
-                const rejectionHtml = `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #334155;">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <h2 style="color: #ef4444; margin: 0;">Payment Verification Update Required ⚠️</h2>
-                            <p style="color: #64748b; font-size: 14px; margin-top: 5px;">We were unable to verify your manual payment receipt</p>
+                // Send Rejection Email
+                const rejectHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                        <h2 style="color: #ef4444; text-align: center; margin-bottom: 20px;">Payment Claim Action Required ⚠️</h2>
+                        <p>Hi,</p>
+                        <p>Our billing team has reviewed your payment claim but was **unable to verify the transaction details** provided.</p>
+                        <div style="background-color: #fef2f2; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #fee2e2;">
+                            <h4 style="margin: 0 0 10px 0; color: #991b1b;">Rejection Details / Reason:</h4>
+                            <p style="margin: 5px 0;"><strong>User Email:</strong> ${claim.email}</p>
+                            <p style="margin: 5px 0;"><strong>Rejection Reason:</strong> ${notes.trim()}</p>
                         </div>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p>Hello,</p>
-                        <p>We were unable to verify your manual payment claim for Apna Downloader SaaS. Please review the explanation note from our administrators below:</p>
-                        <div style="background-color: #fef2f2; padding: 15px; border-radius: 6px; border: 1px solid #fee2e2; margin: 20px 0; color: #991b1b; font-weight: 500;">
-                            <strong>Reason:</strong> ${notes.trim()}
+                        <p>Please log in to your customer portal and submit a new payment claim with the correct Transaction ID or upload a clear receipt image.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="https://apna-downloader.pages.dev/portal" style="background-color: #ef4444; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Go to Customer Portal</a>
                         </div>
-                        <p>Please log in to your dashboard portal, verify your transfer details, and re-submit a new claim with the correct receipt image or Transaction ID.</p>
-                        <p>If you have any questions or feel this is a mistake, please contact us or reach out via WhatsApp Support.</p>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">This is an automated system email. Please do not reply directly.</p>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                        <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
                     </div>
                 `;
-                ctx.waitUntil(sendEmail(claim.email, "Payment Verification Update Required ⚠️", rejectionHtml, env));
+                ctx.waitUntil(sendEmail(claim.email, "Payment Verification Action Required ⚠️", rejectHtml, env));
 
                 return new Response(JSON.stringify({ success: true, message: "Claim has been successfully rejected." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }

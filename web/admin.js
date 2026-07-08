@@ -273,7 +273,6 @@ function switchAdminTab(tabName) {
     const tabRoles = document.getElementById("admin-tab-roles");
     const tabClaims = document.getElementById("admin-tab-claims");
     const tabSupport = document.getElementById("admin-tab-support");
-    const tabEmail = document.getElementById("admin-tab-email");
     const tabSettings = document.getElementById("admin-tab-settings");
     
     const pageUsers = document.getElementById("admin-page-users");
@@ -281,12 +280,11 @@ function switchAdminTab(tabName) {
     const pageRoles = document.getElementById("admin-page-roles");
     const pageClaims = document.getElementById("admin-page-claims");
     const pageSupport = document.getElementById("admin-page-support");
-    const pageEmail = document.getElementById("admin-page-email");
     const pageSettings = document.getElementById("admin-page-settings");
     
     // Reset active states
-    [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport, tabEmail, tabSettings].forEach(btn => btn?.classList.remove("active"));
-    [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport, pageEmail, pageSettings].forEach(page => {
+    [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport, tabSettings].forEach(btn => btn?.classList.remove("active"));
+    [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport, pageSettings].forEach(page => {
         if (page) page.style.display = "none";
     });
     
@@ -308,10 +306,6 @@ function switchAdminTab(tabName) {
         tabSupport?.classList.add("active");
         if (pageSupport) pageSupport.style.display = "block";
         loadSupportMessages();
-    } else if (tabName === 'email') {
-        tabEmail?.classList.add("active");
-        if (pageEmail) pageEmail.style.display = "block";
-        populateEmailRecipients();
     } else if (tabName === 'settings') {
         tabSettings?.classList.add("active");
         if (pageSettings) pageSettings.style.display = "block";
@@ -1222,97 +1216,5 @@ window.loadSupportMessages = loadSupportMessages;
 window.resolveSupportMessage = resolveSupportMessage;
 window.deleteSupportMessage = deleteSupportMessage;
 window.handleAdminChangePasswordSubmit = handleAdminChangePasswordSubmit;
-
-function populateEmailRecipients() {
-    const dropdown = document.getElementById("email-recipient");
-    if (!dropdown) return;
-    
-    // Clear and restore first Option ("all")
-    dropdown.innerHTML = `<option value="all">📢 All Registered Users (Blast)</option>`;
-    
-    // Check if we have cached users
-    if (window.usersCached && window.usersCached.length > 0) {
-        window.usersCached.forEach(user => {
-            const opt = document.createElement("option");
-            opt.value = user.email;
-            opt.textContent = `${user.first_name} ${user.last_name} (${user.email})`;
-            dropdown.appendChild(opt);
-        });
-    }
-}
-
-async function handleAdminSendEmailSubmit(event) {
-    event.preventDefault();
-    
-    const successToast = document.getElementById("email-success-toast");
-    const errorToast = document.getElementById("email-error-toast");
-    const submitBtn = document.getElementById("btn-send-custom-email");
-    
-    if (successToast) successToast.style.display = "none";
-    if (errorToast) errorToast.style.display = "none";
-    
-    const recipientSelect = document.getElementById("email-recipient").value;
-    const recipientCustom = document.getElementById("email-recipient-custom").value.trim();
-    const subject = document.getElementById("email-subject").value.trim();
-    const content = document.getElementById("email-content").value.trim();
-    
-    const recipient = recipientCustom ? recipientCustom : recipientSelect;
-    
-    if (!recipient) {
-        if (errorToast) {
-            errorToast.textContent = "Please select or type a recipient address.";
-            errorToast.style.display = "block";
-        }
-        return;
-    }
-    
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Sending Email Blast...";
-    }
-    
-    try {
-        const token = localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token");
-        const response = await fetch(`${API_BASE_URL}/api/admin/emails/send`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ recipient, subject, content })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
-            if (successToast) {
-                successToast.textContent = data.message || "Custom email sent successfully!";
-                successToast.style.display = "block";
-            }
-            document.getElementById("email-recipient-custom").value = "";
-            document.getElementById("email-subject").value = "";
-            document.getElementById("email-content").value = "";
-        } else {
-            if (errorToast) {
-                errorToast.textContent = data.error || "Failed to send email.";
-                errorToast.style.display = "block";
-            }
-        }
-    } catch (e) {
-        console.error(e);
-        if (errorToast) {
-            errorToast.textContent = "Network error: Failed to connect to server.";
-            errorToast.style.display = "block";
-        }
-    } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Send Email Blast`;
-        }
-    }
-}
-
-window.populateEmailRecipients = populateEmailRecipients;
-window.handleAdminSendEmailSubmit = handleAdminSendEmailSubmit;
 window.addEventListener("DOMContentLoaded", init);
 

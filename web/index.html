@@ -301,7 +301,7 @@
             <div style="display: flex; flex-wrap: wrap; gap: 30px; align-items: stretch; justify-content: center; max-width: 1000px; margin: 0 auto;">
                 
                 <!-- Left Side: Interactive Contact Form -->
-                <div class="card-glass" style="padding: 30px; text-align: left; flex: 1.2; min-width: 320px;">
+                <div class="contact-card-3d" style="padding: 30px; text-align: left; flex: 1.2; min-width: 320px;">
                     <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-paper-plane" style="color: var(--accent-color);"></i> Send a Direct Message
                     </h3>
@@ -313,15 +313,15 @@
                     <form id="contact-form" onsubmit="handleSupportSubmit(event)">
                         <div class="form-group" style="margin-bottom: 18px;">
                             <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Your Name</label>
-                            <input type="text" id="contact-name" class="form-input" placeholder="Enter name" required>
+                            <input type="text" id="contact-name" class="form-input contact-input-3d" placeholder="Enter name" required>
                         </div>
                         <div class="form-group" style="margin-bottom: 18px;">
                             <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Email Address</label>
-                            <input type="email" id="contact-email" class="form-input" placeholder="name@domain.com" required>
+                            <input type="email" id="contact-email" class="form-input contact-input-3d" placeholder="name@domain.com" required>
                         </div>
                         <div class="form-group" style="margin-bottom: 18px;">
                             <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Message Subject</label>
-                            <select id="contact-subject" class="form-select" required>
+                            <select id="contact-subject" class="form-select contact-input-3d" style="width: 100%;" required>
                                 <option value="license">License Key & Activation Issue</option>
                                 <option value="unbind">Device Slots Unbinding Support</option>
                                 <option value="download">Download Speed Splitting Help</option>
@@ -330,9 +330,9 @@
                         </div>
                         <div class="form-group" style="margin-bottom: 25px;">
                             <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Your Message</label>
-                            <textarea id="contact-message" class="form-input" style="height: 120px; resize: vertical;" placeholder="Type details here..." required></textarea>
+                            <textarea id="contact-message" class="form-input contact-input-3d" style="height: 120px; resize: vertical; width: 100%;" placeholder="Type details here..." required></textarea>
                         </div>
-                        <button type="submit" class="btn-submit" style="width: 100%; font-size: 13px; padding: 12px;"><i class="fa-solid fa-paper-plane"></i> Submit Inquiry</button>
+                        <button type="submit" class="contact-btn-3d" style="width: 100%; font-size: 13px; padding: 12px;"><i class="fa-solid fa-paper-plane"></i> Submit Inquiry</button>
                     </form>
                 </div>
 

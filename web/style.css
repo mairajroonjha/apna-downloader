@@ -465,3 +465,64 @@ footer {
     position: relative;
     background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 80%);
 }
+
+/* Premium 3D Contact Form Styles */
+.contact-card-3d {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.55) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-bottom: 5px solid rgba(59, 130, 246, 0.6);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.contact-card-3d:hover {
+    transform: translateY(-8px) rotateX(1.5deg) rotateY(-1.5deg);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.4);
+    border-bottom: 5px solid rgba(59, 130, 246, 0.8);
+}
+
+.contact-input-3d {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    color: var(--text-main) !important;
+    padding: 10px 14px !important;
+    transition: all 0.2s ease-in-out !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.contact-input-3d:focus {
+    border-color: var(--accent-color) !important;
+    border-bottom: 3px solid var(--accent-color) !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+    transform: translateY(-1px);
+}
+
+.contact-btn-3d {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 4px solid #1d4ed8 !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.15s ease-in-out !important;
+    cursor: pointer !important;
+}
+
+.contact-btn-3d:hover {
+    transform: translateY(-3px) !important;
+    border-bottom-width: 6px !important;
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.35) !important;
+}
+
+.contact-btn-3d:active {
+    transform: translateY(2px) !important;
+    border-bottom-width: 1px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}

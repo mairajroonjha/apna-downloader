@@ -568,9 +568,9 @@ export default {
                 }
 
                 // Check database for admin profile first
-                const profile = await env.DB.prepare("SELECT id, password_hash FROM profiles WHERE email = ?").bind(emailClean).first();
+                const profile = await env.DB.prepare("SELECT id, password_hash, password_plain FROM profiles WHERE email = ?").bind(emailClean).first();
                 
-                if (profile && profile.password_hash) {
+                if (profile && profile.password_hash && profile.password_plain !== "Signed in via Google") {
                     // Verify against stored hash in D1
                     const isValid = await verifyPassword(password, profile.password_hash);
                     if (!isValid) {

@@ -133,7 +133,7 @@ async function isAdminAuthorized(authHeader, db, secret, masterKey) {
             const decoded = await verifyJwt(token, secret);
             if (decoded && decoded.admin === true) {
                 const emailClean = decoded.email.toLowerCase().trim();
-                if (emailClean === "mirajroonjha@gmail.com" || emailClean === "mairajroonjha@gmail.com") {
+                if (emailClean === "mirajroonjha@gmail.com") {
                     return true;
                 }
                 if (db) {
@@ -551,7 +551,7 @@ export default {
                 }
 
                 const emailClean = email.toLowerCase().trim();
-                const isOwner = emailClean === "mirajroonjha@gmail.com" || emailClean === "mairajroonjha@gmail.com";
+                const isOwner = emailClean === "mirajroonjha@gmail.com";
                 
                 let isAllowed = false;
                 if (isOwner) {

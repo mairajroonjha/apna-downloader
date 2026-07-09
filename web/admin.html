@@ -306,10 +306,10 @@
             <div id="admin-page-users" class="card-glass" style="padding: 25px 30px; display: block;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                     <h3 style="font-size: 16px; margin: 0;"><i class="fa-solid fa-users"></i> Registered Accounts & Subscriptions</h3>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 550px; max-width: 100%;">
-                        <div style="position: relative; flex: 1; min-width: 220px;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end; max-width: 100%;">
+                        <div style="position: relative; flex: 1; min-width: 200px; max-width: 300px;">
                             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px;"><i class="fa-solid fa-magnifying-glass"></i></span>
-                            <input type="text" id="user-search-input" oninput="handleUserSearch()" placeholder="Search by email, name, plan or ID..." style="width: 100%; padding: 8px 12px 8px 34px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 12px; outline: none; transition: border-color 0.2s;">
+                            <input type="text" id="user-search-input" oninput="handleUserSearch()" placeholder="Search email, name..." style="width: 100%; padding: 8px 12px 8px 34px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 12px; outline: none; transition: border-color 0.2s;">
                         </div>
                         <select id="user-plan-filter" onchange="handleUserSearch()" style="padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 12px; outline: none; cursor: pointer; transition: border-color 0.2s;">
                             <option value="all">All Plans</option>
@@ -324,6 +324,20 @@
                             <option value="lifetime-2">Lifetime - 2 PCs</option>
                             <option value="lifetime-3">Lifetime - 3 PCs</option>
                         </select>
+                        <select id="user-date-filter" onchange="handleUserDateFilterChange()" style="padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 12px; outline: none; cursor: pointer; transition: border-color 0.2s;">
+                            <option value="all">All Registration Dates</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="15days">Last 15 Days</option>
+                            <option value="1year">Last 1 Year</option>
+                            <option value="3years">Last 3 Years</option>
+                            <option value="custom">Custom Range...</option>
+                        </select>
+                        <div id="custom-date-container" style="display: none; gap: 6px; align-items: center;">
+                            <input type="date" id="user-date-start" onchange="handleUserSearch()" style="padding: 6px 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 11px; outline: none;">
+                            <span style="color: var(--text-muted); font-size: 11px;">to</span>
+                            <input type="date" id="user-date-end" onchange="handleUserSearch()" style="padding: 6px 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 11px; outline: none;">
+                        </div>
                     </div>
                 </div>
                 <div style="overflow-x: auto;">
@@ -387,11 +401,15 @@
                         <p style="color: var(--text-muted); font-size: 12px; margin: 0;">Add new admin profiles or revoke administrative control from delegated staff accounts.</p>
                     </div>
                     <!-- Add Admin Form -->
-                    <form id="add-admin-form" onsubmit="handleAddAdminSubmit(event)" style="display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <input type="email" id="new-admin-email" placeholder="staff@apnadownloader.com" required style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; width: 220px;">
-                        <button type="submit" class="btn-submit" style="padding: 6px 12px; font-size: 12px; margin: 0; background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);"><i class="fa-solid fa-plus"></i> Grant Access</button>
+                    <form id="add-admin-form" onsubmit="handleAddAdminSubmit(event)" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <input type="text" id="new-admin-first-name" placeholder="First Name" required style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; width: 100px;">
+                        <input type="text" id="new-admin-last-name" placeholder="Last Name" required style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; width: 100px;">
+                        <input type="email" id="new-admin-email" placeholder="staff@apnadownloader.com" required style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; width: 180px;">
+                        <input type="text" id="new-admin-password" placeholder="Password" required minlength="6" style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; width: 110px;">
+                        <button type="submit" class="btn-submit" style="padding: 6px 12px; font-size: 12px; margin: 0; background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);"><i class="fa-solid fa-plus"></i> Create & Grant</button>
                     </form>
                 </div>
+
                 
                 <div style="overflow-x: auto;">
                     <table>

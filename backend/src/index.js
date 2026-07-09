@@ -747,7 +747,7 @@ export default {
                 }
 
                 const list = await env.DB.prepare(
-                    "SELECT p.id, p.email, p.password_plain, p.first_name, p.last_name, p.approval_status, p.is_blacklisted, p.is_admin, s.plan_type, s.pc_slots, s.status, s.trial_end, s.active_devices, s.custom_discount FROM profiles p JOIN subscriptions s ON p.id = s.user_id"
+                    "SELECT p.id, p.email, p.password_plain, p.first_name, p.last_name, p.approval_status, p.is_blacklisted, p.is_admin, p.created_at, s.plan_type, s.pc_slots, s.status, s.trial_end, s.active_devices, s.custom_discount FROM profiles p JOIN subscriptions s ON p.id = s.user_id"
                 ).all();
 
                 return new Response(JSON.stringify({ success: true, users: list.results }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -802,6 +802,62 @@ export default {
                 
                 // Delete user profile (ON DELETE CASCADE handles subscriptions table automatically)
                 await env.DB.prepare("DELETE FROM profiles WHERE id = ?").bind(userId).run();
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 8d. ADMIN CREATE OR PROMPT ADMINISTRATOR ACCESS & DISPATCH EMAIL
+            if (path === "/api/admin/roles/create" && request.method === "POST") {
+                const authHeader = request.headers.get("Authorization");
+                if (!(await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY))) {
+                    return new Response(JSON.stringify({ success: false, error: "Unauthorized admin access" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { first_name, last_name, email, password } = await request.json();
+                if (!email || !password || !first_name || !last_name) {
+                    return new Response(JSON.stringify({ success: false, error: "First name, last name, email and password are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const emailClean = email.toLowerCase().trim();
+                const passHash = await hashPassword(password);
+
+                const existing = await env.DB.prepare("SELECT id FROM profiles WHERE email = ?").bind(emailClean).first();
+                let userId = existing ? existing.id : crypto.randomUUID();
+
+                if (existing) {
+                    // Update existing profile to admin & set password
+                    await env.DB.prepare(
+                        "UPDATE profiles SET first_name = ?, last_name = ?, password_hash = ?, password_plain = ?, is_admin = 1, approval_status = 'approved' WHERE id = ?"
+                    ).bind(first_name, last_name, passHash, password, userId).run();
+                } else {
+                    // Insert new profile with admin privileges
+                    await env.DB.batch([
+                        env.DB.prepare("INSERT INTO profiles (id, email, password_hash, password_plain, first_name, last_name, approval_status, is_admin) VALUES (?, ?, ?, ?, ?, ?, 'approved', 1)").bind(userId, emailClean, passHash, password, first_name, last_name),
+                        env.DB.prepare("INSERT INTO subscriptions (user_id, plan_type, status) VALUES (?, 'lifetime', 'active')").bind(userId)
+                    ]);
+                }
+
+                // Send Credentials Notification Email
+                const adminEmailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                        <h2 style="color: #1d4ed8; text-align: center; margin-bottom: 20px;">Apna Downloader - Admin Panel Access! 🛡️</h2>
+                        <p>Hi ${first_name} ${last_name},</p>
+                        <p>You have been granted administrator access privileges to manage the Apna Downloader platform. Below are your dashboard login credentials:</p>
+                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #cbd5e1;">
+                            <h4 style="margin: 0 0 10px 0; color: #0f172a;">Administrator Credentials:</h4>
+                            <p style="margin: 5px 0;"><strong>Admin Login Email:</strong> ${emailClean}</p>
+                            <p style="margin: 5px 0;"><strong>Temporary Password:</strong> ${password}</p>
+                            <p style="margin: 5px 0;"><strong>Dashboard URL:</strong> <a href="https://apna-downloader.pages.dev/admin" style="color: #2563eb;">apna-downloader.pages.dev/admin</a></p>
+                        </div>
+                        <p style="font-size: 13px; color: #64748b;">Note: You can log in using this email and password. If your email is connected to a Google account, you can also use "Sign in with Google" to access the portal.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="https://apna-downloader.pages.dev/admin" style="background-color: #1d4ed8; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Log In to Admin Dashboard</a>
+                        </div>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                        <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader &copy; 2026. All rights reserved.</p>
+                    </div>
+                `;
+                ctx.waitUntil(sendEmail(emailClean, "Apna Downloader - Admin Panel Access Granted! 🛡️", adminEmailHtml, env));
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }

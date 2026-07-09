@@ -643,9 +643,63 @@ function loginWithGoogle() {
 window.loginWithGoogle = loginWithGoogle;
 window.handleLogout = handleLogout;
 
+function handleUserDateFilterChange() {
+    const filter = document.getElementById("user-date-filter").value;
+    const customContainer = document.getElementById("custom-date-container");
+    if (filter === "custom") {
+        customContainer.style.display = "flex";
+    } else {
+        customContainer.style.display = "none";
+        document.getElementById("user-date-start").value = "";
+        document.getElementById("user-date-end").value = "";
+    }
+    handleUserSearch();
+}
+
 function handleUserSearch() {
     const query = document.getElementById("user-search-input").value.toLowerCase().trim();
     const planFilter = document.getElementById("user-plan-filter").value;
+    const dateFilter = document.getElementById("user-date-filter").value;
+    
+    // Start/End date bounds for date filtering
+    let filterStart = null;
+    let filterEnd = null;
+    
+    if (dateFilter === 'today') {
+        filterStart = new Date();
+        filterStart.setHours(0, 0, 0, 0);
+    } else if (dateFilter === 'yesterday') {
+        filterStart = new Date();
+        filterStart.setDate(filterStart.getDate() - 1);
+        filterStart.setHours(0, 0, 0, 0);
+        
+        filterEnd = new Date();
+        filterEnd.setDate(filterEnd.getDate() - 1);
+        filterEnd.setHours(23, 59, 59, 999);
+    } else if (dateFilter === '15days') {
+        filterStart = new Date();
+        filterStart.setDate(filterStart.getDate() - 15);
+        filterStart.setHours(0, 0, 0, 0);
+    } else if (dateFilter === '1year') {
+        filterStart = new Date();
+        filterStart.setFullYear(filterStart.getFullYear() - 1);
+        filterStart.setHours(0, 0, 0, 0);
+    } else if (dateFilter === '3years') {
+        filterStart = new Date();
+        filterStart.setFullYear(filterStart.getFullYear() - 3);
+        filterStart.setHours(0, 0, 0, 0);
+    } else if (dateFilter === 'custom') {
+        const startVal = document.getElementById("user-date-start").value;
+        const endVal = document.getElementById("user-date-end").value;
+        if (startVal) {
+            filterStart = new Date(startVal);
+            filterStart.setHours(0, 0, 0, 0);
+        }
+        if (endVal) {
+            filterEnd = new Date(endVal);
+            filterEnd.setHours(23, 59, 59, 999);
+        }
+    }
     
     const filtered = usersCached.filter(u => {
         // Plan & Slot filter matching
@@ -660,6 +714,14 @@ function handleUserSearch() {
                     return false;
                 }
             }
+        }
+        
+        // Date filter matching
+        if (filterStart || filterEnd) {
+            if (!u.created_at) return false;
+            const created = new Date(u.created_at.replace(" ", "T"));
+            if (filterStart && created < filterStart) return false;
+            if (filterEnd && created > filterEnd) return false;
         }
         
         // Search text matching
@@ -682,6 +744,7 @@ function handleUserSearch() {
 }
 
 window.handleUserSearch = handleUserSearch;
+window.handleUserDateFilterChange = handleUserDateFilterChange;
 
 function renderAdminRoles() {
     const rolesTableBody = document.getElementById("roles-table-body");
@@ -725,49 +788,39 @@ function renderAdminRoles() {
 
 async function handleAddAdminSubmit(event) {
     event.preventDefault();
+    const firstNameInput = document.getElementById("new-admin-first-name");
+    const lastNameInput = document.getElementById("new-admin-last-name");
     const emailInput = document.getElementById("new-admin-email");
+    const passwordInput = document.getElementById("new-admin-password");
+    
+    const first_name = firstNameInput.value.trim();
+    const last_name = lastNameInput.value.trim();
     const email = emailInput.value.toLowerCase().trim();
-    if (!email) return;
+    const password = passwordInput.value;
     
-    const user = usersCached.find(u => u.email.toLowerCase() === email);
-    if (!user) {
-        alert("User account with this email address was not found in the users roster list.");
-        return;
-    }
-    
-    if (user.is_admin === 1) {
-        alert("This user already has administrator access privileges.");
-        return;
-    }
+    if (!email || !password || !first_name || !last_name) return;
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/admin/users/update`, {
+        const response = await fetch(`${BACKEND_URL}/api/admin/roles/create`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${adminKey}`
             },
-            body: JSON.stringify({
-                userId: user.id,
-                plan_type: user.plan_type,
-                pc_slots: user.pc_slots,
-                status: user.status,
-                trial_end: user.trial_end,
-                active_devices: user.active_devices,
-                is_blacklisted: user.is_blacklisted,
-                custom_discount: user.custom_discount || 0,
-                is_admin: 1
-            })
+            body: JSON.stringify({ first_name, last_name, email, password })
         });
         
         const data = await response.json();
         if (data.success) {
+            firstNameInput.value = "";
+            lastNameInput.value = "";
             emailInput.value = "";
-            alert("Administrator access has been successfully granted!");
+            passwordInput.value = "";
+            alert("Administrator account has been successfully created/granted, and login details have been emailed!");
             await loadUsers();
             renderAdminRoles();
         } else {
-            alert("Failed to update access: " + (data.error || "Unknown error"));
+            alert("Failed to create admin access: " + (data.error || "Unknown error"));
         }
     } catch(e) {
         alert("Failed to connect to the backend server.");

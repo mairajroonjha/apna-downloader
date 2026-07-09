@@ -3,7 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apna Downloader - SaaS Platform</title>
+    <title>Apna Downloader - Fast Multithreaded Batch & YouTube Playlist Downloader</title>
+    <meta name="description" content="Download YouTube playlists, videos, and files at maximum bandwidth speeds with Apna Downloader. High-speed multithreaded Windows download manager featuring premium 3D glassmorphism interface.">
+    <meta name="keywords" content="download manager, playlist downloader, youtube playlist downloader, multithreaded downloader, windows downloader, apna downloader, batch downloader, high speed download">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook Previews -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://apna-downloader.pages.dev/">
+    <meta property="og:title" content="Apna Downloader - Fast Multithreaded Batch & YouTube Playlist Downloader">
+    <meta property="og:description" content="Download YouTube playlists, videos, and files at maximum bandwidth speeds with Apna Downloader. High-speed multithreaded Windows download manager featuring premium 3D glassmorphism interface.">
+    <meta property="og:image" content="https://apna-downloader.pages.dev/assets/logo.png">
+
+    <!-- Twitter Card Previews -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://apna-downloader.pages.dev/">
+    <meta property="twitter:title" content="Apna Downloader - Fast Multithreaded Batch & YouTube Playlist Downloader">
+    <meta property="twitter:description" content="Download YouTube playlists, videos, and files at maximum bandwidth speeds with Apna Downloader. High-speed multithreaded Windows download manager featuring premium 3D glassmorphism interface.">
+    <meta property="twitter:image" content="https://apna-downloader.pages.dev/assets/logo.png">
+
+    <!-- JSON-LD Structured Data for Search (SEO) and Answer Engines (AEO) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://apna-downloader.pages.dev/#software",
+          "name": "Apna Downloader",
+          "description": "High-speed multithreaded batch and YouTube playlist downloader for Windows featuring a custom 3D glassmorphic GUI.",
+          "operatingSystem": "Windows 10, Windows 11",
+          "applicationCategory": "UtilitiesApplication",
+          "downloadUrl": "https://github.com/mairajroonjha/apna-downloader/releases/download/v1.0.0/Apna.Dowanloader.Setup.1.0.0.exe",
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "PKR",
+            "lowPrice": "270",
+            "highPrice": "6800",
+            "offerCount": "9"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://apna-downloader.pages.dev/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Apna Downloader?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Apna Downloader is a high-speed multithreaded Windows application that allows you to download videos, playlists, and bulk files with maximum bandwidth speed."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does the playlist downloader feature work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Simply copy your YouTube playlist link, paste it into the downloader application search bar, and select multiple videos to download them concurrently in one click."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is there a free trial available?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! Every new user gets a free trial with full access to high-speed multithreaded downloads to try the product before upgrading to a premium license."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I manage multiple device licenses?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Absolutely. With our premium plans (1, 2, or 3 PC options), you can bind multiple Windows computers to your subscription. If you switch computers, you can easily unbind your old machine via the Customer Portal."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script>
@@ -54,6 +135,7 @@
                 <a href="#features" onclick="closeMobileMenu()">Features</a>
                 <a href="#install-guide" onclick="closeMobileMenu()">Setup Guide</a>
                 <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+                <a href="#faq-section" onclick="closeMobileMenu()">FAQ</a>
                 <a href="#support-section" onclick="closeMobileMenu()">Support</a>
                 <a href="#contact-section" onclick="closeMobileMenu()">Contact Us</a>
                 <a href="portal.html" onclick="closeMobileMenu()">Portal</a>
@@ -394,6 +476,60 @@
             </div>
         </section>
 
+        <!-- FAQ Section for SEO & AEO -->
+        <section id="faq-section" style="scroll-margin-top: 160px; margin-top: 20px;">
+            <div style="text-align: center; margin-bottom: 45px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;"><i class="fa-solid fa-circle-question" style="color: var(--accent-color);"></i> Frequently Asked Questions</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Find quick answers about Apna Downloader features, licensing, and playlist downloading.</p>
+            </div>
+            
+            <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px;">
+                <!-- FAQ Item 1 -->
+                <div class="card-glass faq-item" onclick="toggleFaq(this)" style="padding: 20px; cursor: pointer; transition: all 0.3s; border-radius: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="font-size: 15px; margin: 0; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-cloud-arrow-down" style="color: var(--accent-color);"></i> What is Apna Downloader?</h4>
+                        <span class="faq-icon" style="transition: transform 0.3s; color: var(--text-muted);"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; margin-top: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;">
+                        <p style="margin-top: 12px; margin-bottom: 0;">Apna Downloader is a high-speed multithreaded Windows application that allows you to download videos, playlists, and bulk files with maximum bandwidth speed. It features a clean, responsive 3D glassmorphic user interface.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="card-glass faq-item" onclick="toggleFaq(this)" style="padding: 20px; cursor: pointer; transition: all 0.3s; border-radius: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="font-size: 15px; margin: 0; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-list-check" style="color: var(--accent-color);"></i> How does the playlist downloader feature work?</h4>
+                        <span class="faq-icon" style="transition: transform 0.3s; color: var(--text-muted);"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; margin-top: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;">
+                        <p style="margin-top: 12px; margin-bottom: 0;">Simply copy your YouTube playlist link, paste it into the downloader application search bar, and select multiple videos to download them concurrently in one click. Our simulator on the landing page demonstrates this batch operation.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="card-glass faq-item" onclick="toggleFaq(this)" style="padding: 20px; cursor: pointer; transition: all 0.3s; border-radius: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="font-size: 15px; margin: 0; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-circle-check" style="color: var(--accent-color);"></i> Is there a free trial available?</h4>
+                        <span class="faq-icon" style="transition: transform 0.3s; color: var(--text-muted);"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; margin-top: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;">
+                        <p style="margin-top: 12px; margin-bottom: 0;">Yes! Every new user gets a free trial with full access to high-speed multithreaded downloads to try the product before upgrading to a premium license.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="card-glass faq-item" onclick="toggleFaq(this)" style="padding: 20px; cursor: pointer; transition: all 0.3s; border-radius: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="font-size: 15px; margin: 0; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-desktop" style="color: var(--accent-color);"></i> Can I manage multiple device licenses?</h4>
+                        <span class="faq-icon" style="transition: transform 0.3s; color: var(--text-muted);"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; margin-top: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;">
+                        <p style="margin-top: 12px; margin-bottom: 0;">Absolutely. With our premium plans (1, 2, or 3 PC options), you can bind multiple Windows computers to your subscription. If you switch computers, you can easily unbind your old machine via the Customer Portal.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Dedicated Support Center Section -->
         <section id="support-section" style="scroll-margin-top: 160px;">
             <div style="text-align: center; margin-bottom: 45px;">
@@ -636,6 +772,29 @@
                     progressText.innerText = `Downloading: ${percentage}% completed (at 48.2 MB/s)`;
                 }
             }, 150);
+        }
+
+        // FAQ Accordion Toggle function for SEO & AEO
+        function toggleFaq(element) {
+            const answer = element.querySelector('.faq-answer');
+            const icon = element.querySelector('.faq-icon');
+            
+            if (answer.style.maxHeight && answer.style.maxHeight !== '0px') {
+                answer.style.maxHeight = '0px';
+                icon.style.transform = 'rotate(0deg)';
+                element.style.borderColor = 'var(--border-color)';
+            } else {
+                // Close all other FAQ items first
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.querySelector('.faq-answer').style.maxHeight = '0px';
+                    item.querySelector('.faq-icon').style.transform = 'rotate(0deg)';
+                    item.style.borderColor = 'var(--border-color)';
+                });
+                
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+                icon.style.transform = 'rotate(180deg)';
+                element.style.borderColor = 'var(--accent-color)';
+            }
         }
 
         // Mobile Navigation Menu Toggle Functions

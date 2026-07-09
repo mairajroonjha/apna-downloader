@@ -468,38 +468,38 @@ footer {
 
 /* Premium 3D Contact Form Styles */
 .contact-card-3d {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.55) 100%);
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    border-bottom: 5px solid rgba(59, 130, 246, 0.6);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-bottom: 5px solid rgba(59, 130, 246, 0.5);
     border-radius: 12px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
     transform-style: preserve-3d;
     perspective: 1000px;
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease, border-bottom 0.3s ease;
 }
 
 .contact-card-3d:hover {
     transform: translateY(-8px) rotateX(1.5deg) rotateY(-1.5deg);
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.25);
-    border-color: rgba(59, 130, 246, 0.4);
-    border-bottom: 5px solid rgba(59, 130, 246, 0.8);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.18);
+    border-color: rgba(59, 130, 246, 0.35);
+    border-bottom: 5px solid rgba(59, 130, 246, 0.75);
 }
 
 .contact-input-3d {
-    background: rgba(15, 23, 42, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-bottom: 3px solid rgba(255, 255, 255, 0.15) !important;
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-bottom: 3px solid var(--border-color) !important;
     border-radius: 6px !important;
     color: var(--text-main) !important;
     padding: 10px 14px !important;
     transition: all 0.2s ease-in-out !important;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06) !important;
 }
 
 .contact-input-3d:focus {
     border-color: var(--accent-color) !important;
     border-bottom: 3px solid var(--accent-color) !important;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.06) !important;
     transform: translateY(-1px);
 }
 
@@ -510,7 +510,7 @@ footer {
     border-radius: 8px !important;
     font-weight: 700 !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12) !important;
     transition: all 0.15s ease-in-out !important;
     cursor: pointer !important;
 }
@@ -518,22 +518,22 @@ footer {
 .contact-btn-3d:hover {
     transform: translateY(-3px) !important;
     border-bottom-width: 6px !important;
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.35) !important;
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25) !important;
 }
 
 .contact-btn-3d:active {
     transform: translateY(2px) !important;
     border-bottom-width: 1px !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Premium 3D Pricing Card Styles */
 .pricing-card-3d {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.55) 100%);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-bottom: 5px solid rgba(59, 130, 246, 0.5);
     border-radius: 12px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
     transform-style: preserve-3d;
     perspective: 1000px;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease, border-bottom 0.3s ease;
@@ -546,20 +546,20 @@ footer {
 
 .pricing-card-3d:hover {
     transform: translateY(-8px) rotateX(1.5deg) rotateY(-1.5deg);
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.18);
     border-color: rgba(59, 130, 246, 0.35);
-    border-bottom: 5px solid rgba(59, 130, 246, 0.7);
+    border-bottom: 5px solid rgba(59, 130, 246, 0.75);
 }
 
 /* Popular pricing card 3D style (Green highlights) */
 .pricing-card-3d.popular {
     border: 1px solid rgba(16, 185, 129, 0.45);
     border-bottom: 5px solid rgba(16, 185, 129, 0.65);
-    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .pricing-card-3d.popular:hover {
-    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.22);
     border-color: rgba(16, 185, 129, 0.6);
     border-bottom: 5px solid rgba(16, 185, 129, 0.85);
 }

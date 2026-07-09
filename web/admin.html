@@ -165,12 +165,77 @@
             outline: none;
             margin-bottom: 15px;
         }
+        /* Mobile Menu Toggle Button styling */
+        .mobile-menu-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 15px;
+        }
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         @media (max-width: 768px) {
-            header .nav-container {
+            .mobile-menu-toggle {
+                display: flex;
+            }
+            nav {
+                display: none;
                 flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--bg-header);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border-bottom: 1px solid var(--border-color);
+                padding: 20px;
                 gap: 12px;
-                text-align: center;
-                padding: 15px;
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+                z-index: 99;
+                box-sizing: border-box;
+            }
+            nav.active {
+                display: flex;
+                animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            nav a {
+                font-size: 15px;
+                font-weight: 600;
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+                color: var(--text-muted);
+                text-decoration: none;
+                display: block;
+            }
+            nav a:hover, nav a.active {
+                color: var(--text-main);
+            }
+            #admin-display {
+                font-size: 12px !important;
+                flex-wrap: wrap;
+                justify-content: flex-end;
             }
             .section-title {
                 flex-direction: column;
@@ -178,7 +243,7 @@
                 gap: 15px;
             }
             .container {
-                padding-top: 190px !important;
+                padding-top: 130px !important;
             }
             .modal-content {
                 width: 92% !important;
@@ -187,6 +252,20 @@
             }
             .stats-row {
                 grid-template-columns: 1fr !important;
+            }
+            #add-admin-form {
+                flex-direction: column;
+                align-items: stretch !important;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            #add-admin-form input {
+                width: 100% !important;
+            }
+            /* Form input grids like discount/promo */
+            .form-group[style*="display: grid"] {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
             }
         }
     </style>
@@ -197,11 +276,11 @@
             <a href="index.html" class="logo">
                 <i class="fa-solid fa-cloud-arrow-down"></i> Apna Downloader
             </a>
-            <nav>
-                <a href="index.html">Features</a>
-                <a href="index.html#pricing">Pricing</a>
-                <a href="portal.html">Customer Portal</a>
-                <a href="#" class="active">Admin</a>
+            <nav id="navbar">
+                <a href="index.html" onclick="closeMobileMenu()">Features</a>
+                <a href="index.html#pricing" onclick="closeMobileMenu()">Pricing</a>
+                <a href="portal.html" onclick="closeMobileMenu()">Customer Portal</a>
+                <a href="#" class="active" onclick="closeMobileMenu()">Admin</a>
             </nav>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none; transition: all 0.2s;" title="Toggle Light/Dark Theme">
@@ -212,6 +291,10 @@
                     <i class="fa-solid fa-user-shield" style="color: var(--success-color);"></i> Master Admin
                     <a href="#" onclick="handleLogout()" style="color: var(--danger-color); margin-left: 15px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
                 </div>
+                <button id="mobile-menu-btn" class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle Navigation Menu">
+                    <i class="fa-solid fa-bars" id="menu-icon-bars"></i>
+                    <i class="fa-solid fa-xmark" id="menu-icon-close" style="display: none;"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -663,5 +746,33 @@
     </div>
 
     <script src="admin.js"></script>
+    <script>
+        // Mobile Navigation Menu Toggle Functions
+        function toggleMobileMenu() {
+            const nav = document.getElementById("navbar");
+            const barsIcon = document.getElementById("menu-icon-bars");
+            const closeIcon = document.getElementById("menu-icon-close");
+            
+            if (nav.classList.contains("active")) {
+                nav.classList.remove("active");
+                if (barsIcon) barsIcon.style.display = "inline-block";
+                if (closeIcon) closeIcon.style.display = "none";
+            } else {
+                nav.classList.add("active");
+                if (barsIcon) barsIcon.style.display = "none";
+                if (closeIcon) closeIcon.style.display = "inline-block";
+            }
+        }
+        
+        function closeMobileMenu() {
+            const nav = document.getElementById("navbar");
+            const barsIcon = document.getElementById("menu-icon-bars");
+            const closeIcon = document.getElementById("menu-icon-close");
+            
+            if (nav) nav.classList.remove("active");
+            if (barsIcon) barsIcon.style.display = "inline-block";
+            if (closeIcon) closeIcon.style.display = "none";
+        }
+    </script>
 </body>
 </html>

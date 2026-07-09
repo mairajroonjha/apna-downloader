@@ -273,6 +273,8 @@ function switchAdminTab(tabName) {
     const tabRoles = document.getElementById("admin-tab-roles");
     const tabClaims = document.getElementById("admin-tab-claims");
     const tabSupport = document.getElementById("admin-tab-support");
+    const tabActivities = document.getElementById("admin-tab-activities");
+    const tabReleases = document.getElementById("admin-tab-releases");
     const tabSettings = document.getElementById("admin-tab-settings");
     
     const pageUsers = document.getElementById("admin-page-users");
@@ -280,6 +282,8 @@ function switchAdminTab(tabName) {
     const pageRoles = document.getElementById("admin-page-roles");
     const pageClaims = document.getElementById("admin-page-claims");
     const pageSupport = document.getElementById("admin-page-support");
+    const pageActivities = document.getElementById("admin-page-activities");
+    const pageReleases = document.getElementById("admin-page-releases");
     const pageSettings = document.getElementById("admin-page-settings");
     
     // Sync mobile select dropdown if present
@@ -289,14 +293,21 @@ function switchAdminTab(tabName) {
     }
     
     // Reset active states
-    [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport, tabSettings].forEach(btn => btn?.classList.remove("active"));
-    [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport, pageSettings].forEach(page => {
+    [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport, tabActivities, tabReleases, tabSettings].forEach(btn => btn?.classList.remove("active"));
+    [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport, pageActivities, pageReleases, pageSettings].forEach(page => {
         if (page) page.style.display = "none";
     });
+    
+    // Show charts row ONLY on users roster tab
+    const chartsRow = document.querySelector(".charts-row");
+    if (chartsRow) {
+        chartsRow.style.display = (tabName === 'users') ? 'grid' : 'none';
+    }
     
     if (tabName === 'users') {
         tabUsers?.classList.add("active");
         if (pageUsers) pageUsers.style.display = "block";
+        loadAnalyticsCharts();
     } else if (tabName === 'pricing') {
         tabPricing?.classList.add("active");
         if (pagePricing) pagePricing.style.display = "block";
@@ -312,6 +323,14 @@ function switchAdminTab(tabName) {
         tabSupport?.classList.add("active");
         if (pageSupport) pageSupport.style.display = "block";
         loadSupportMessages();
+    } else if (tabName === 'activities') {
+        tabActivities?.classList.add("active");
+        if (pageActivities) pageActivities.style.display = "block";
+        loadActivities();
+    } else if (tabName === 'releases') {
+        tabReleases?.classList.add("active");
+        if (pageReleases) pageReleases.style.display = "block";
+        loadReleases();
     } else if (tabName === 'settings') {
         tabSettings?.classList.add("active");
         if (pageSettings) pageSettings.style.display = "block";
@@ -1275,5 +1294,223 @@ window.loadSupportMessages = loadSupportMessages;
 window.resolveSupportMessage = resolveSupportMessage;
 window.deleteSupportMessage = deleteSupportMessage;
 window.handleAdminChangePasswordSubmit = handleAdminChangePasswordSubmit;
+
+// Analytics, Audit Logs, and Release Manager Modules
+async function loadAnalyticsCharts() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/analytics`, {
+            headers: { "Authorization": `Bearer ${adminKey}` }
+        });
+        const data = await response.json();
+        if (!data.success) return;
+
+        // 1. Render User Signups Chart
+        const signupLabels = (data.signups || []).map(item => item.date);
+        const signupCounts = (data.signups || []).map(item => item.count);
+
+        const ctxSignups = document.getElementById("signupsChart").getContext("2d");
+        if (signupChartInstance) signupChartInstance.destroy();
+
+        signupChartInstance = new Chart(ctxSignups, {
+            type: "line",
+            data: {
+                labels: signupLabels.length ? signupLabels : ["No Data"],
+                datasets: [{
+                    label: "Signups",
+                    data: signupCounts.length ? signupCounts : [0],
+                    borderColor: "#3b82f6",
+                    backgroundColor: "rgba(59, 130, 246, 0.15)",
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: "#3b82f6"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: "rgba(255, 255, 255, 0.05)" },
+                        ticks: { color: "rgba(255, 255, 255, 0.5)", font: { size: 10 } }
+                    },
+                    y: {
+                        grid: { color: "rgba(255, 255, 255, 0.05)" },
+                        ticks: { color: "rgba(255, 255, 255, 0.5)", font: { size: 10 } },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 2. Render Plans Distribution Chart
+        const planTypes = (data.plans || []).map(item => item.plan_type.toUpperCase());
+        const planCounts = (data.plans || []).map(item => item.count);
+
+        const colorPalette = {
+            "TRIAL": "#64748b",
+            "MONTHLY": "#3b82f6",
+            "YEARLY": "#10b981",
+            "LIFETIME": "#8b5cf6"
+        };
+        const planColors = (data.plans || []).map(item => colorPalette[item.plan_type.toUpperCase()] || "#475569");
+
+        const ctxPlans = document.getElementById("plansChart").getContext("2d");
+        if (planChartInstance) planChartInstance.destroy();
+
+        planChartInstance = new Chart(ctxPlans, {
+            type: "doughnut",
+            data: {
+                labels: planTypes.length ? planTypes : ["No Subscriptions"],
+                datasets: [{
+                    data: planCounts.length ? planCounts : [1],
+                    backgroundColor: planColors.length ? planColors : ["rgba(255,255,255,0.05)"],
+                    borderWidth: 1,
+                    borderColor: "rgba(0,0,0,0.15)"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "right",
+                        labels: { color: "rgba(255, 255, 255, 0.75)", font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+    } catch (e) {
+        console.error("Failed to load analytics charts:", e);
+    }
+}
+
+async function loadActivities() {
+    const tableBody = document.getElementById("activities-table-body");
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/activities`, {
+            headers: { "Authorization": `Bearer ${adminKey}` }
+        });
+        const data = await response.json();
+        if (!data.success) {
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger-color);">${data.error || "Failed to load"}</td></tr>`;
+            return;
+        }
+
+        if (!data.logs || data.logs.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No activity logs recorded yet.</td></tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = "";
+        data.logs.forEach(log => {
+            const tr = document.createElement("tr");
+            const localDate = new Date(log.created_at.replace(" ", "T") + "Z").toLocaleString();
+            
+            let badgeClass = "badge success";
+            if (log.action.includes("DELETE") || log.action.includes("REJECT")) badgeClass = "badge danger";
+            if (log.action.includes("UPDATE")) badgeClass = "badge warning";
+            
+            tr.innerHTML = `
+                <td style="white-space: nowrap; color: var(--text-muted); font-size: 11px;">${localDate}</td>
+                <td><strong>${log.admin_email}</strong></td>
+                <td><span class="${badgeClass}">${log.action}</span></td>
+                <td style="color: var(--text-main); font-size: 12px;">${log.details}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    } catch (e) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger-color);">Error connecting to backend</td></tr>`;
+    }
+}
+
+async function loadReleases() {
+    const tableBody = document.getElementById("releases-table-body");
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/releases`, {
+            headers: { "Authorization": `Bearer ${adminKey}` }
+        });
+        const data = await response.json();
+        if (!data.success) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger-color);">${data.error || "Failed to load"}</td></tr>`;
+            return;
+        }
+
+        if (!data.releases || data.releases.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No software releases published yet.</td></tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = "";
+        data.releases.forEach(rel => {
+            const tr = document.createElement("tr");
+            const localDate = new Date(rel.created_at.replace(" ", "T") + "Z").toLocaleDateString();
+            
+            const isMandatory = rel.is_mandatory === 1;
+            const statusBadge = isMandatory 
+                ? `<span class="badge danger"><i class="fa-solid fa-triangle-exclamation"></i> Mandatory</span>`
+                : `<span class="badge success">Optional Update</span>`;
+
+            tr.innerHTML = `
+                <td style="white-space: nowrap; color: var(--text-muted); font-size: 11px;">${localDate}</td>
+                <td><code style="background: rgba(59,130,246,0.15); padding: 3px 6px; border-radius: 4px; color: var(--accent-color); font-weight: 700;">v${rel.version}</code></td>
+                <td><a href="${rel.download_url}" target="_blank" style="color: var(--accent-color); text-decoration: underline; font-size: 11px; word-break: break-all;">${rel.download_url}</a></td>
+                <td style="color: var(--text-main); font-size: 12px;">${rel.changelog || "-"}</td>
+                <td>${statusBadge}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    } catch (e) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger-color);">Error connecting to backend</td></tr>`;
+    }
+}
+
+async function handlePublishReleaseSubmit(event) {
+    event.preventDefault();
+    const versionInput = document.getElementById("release-version");
+    const downloadInput = document.getElementById("release-download-url");
+    const changelogInput = document.getElementById("release-changelog");
+    const mandatoryInput = document.getElementById("release-mandatory");
+    
+    const version = versionInput.value.trim();
+    const download_url = downloadInput.value.trim();
+    const changelog = changelogInput.value.trim();
+    const is_mandatory = mandatoryInput.checked;
+    
+    if (!version || !download_url) return;
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/releases/create`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${adminKey}`
+            },
+            body: JSON.stringify({ version, download_url, changelog, is_mandatory })
+        });
+        const data = await response.json();
+        if (data.success) {
+            alert("App release successfully published!");
+            versionInput.value = "";
+            downloadInput.value = "";
+            changelogInput.value = "";
+            mandatoryInput.checked = false;
+            loadReleases();
+        } else {
+            alert("Failed to publish release: " + (data.error || "Unknown error"));
+        }
+    } catch (e) {
+        alert("Failed to connect to backend server.");
+    }
+}
+
+window.loadAnalyticsCharts = loadAnalyticsCharts;
+window.loadActivities = loadActivities;
+window.loadReleases = loadReleases;
+window.handlePublishReleaseSubmit = handlePublishReleaseSubmit;
 window.addEventListener("DOMContentLoaded", init);
 

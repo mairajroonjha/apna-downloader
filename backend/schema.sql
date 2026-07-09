@@ -81,3 +81,22 @@ CREATE TABLE IF NOT EXISTS payment_claims (
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Audit log history of admin actions
+CREATE TABLE IF NOT EXISTS admin_activities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    admin_email TEXT NOT NULL,
+    action TEXT NOT NULL,
+    details TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Version release management for the desktop application
+CREATE TABLE IF NOT EXISTS app_releases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    version TEXT NOT NULL UNIQUE,
+    download_url TEXT NOT NULL,
+    changelog TEXT,
+    is_mandatory INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

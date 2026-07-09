@@ -148,6 +148,32 @@ async function isAdminAuthorized(authHeader, db, secret, masterKey) {
     return false;
 }
 
+async function getAdminEmailFromHeader(authHeader, secret, masterKey) {
+    if (authHeader === `Bearer ${masterKey}`) {
+        return "mirajroonjha@gmail.com";
+    }
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
+        try {
+            const decoded = await verifyJwt(token, secret);
+            if (decoded && decoded.email) {
+                return decoded.email.toLowerCase().trim();
+            }
+        } catch(e) {}
+    }
+    return "unknown_admin@apnadownloader.com";
+}
+
+async function logAdminActivity(db, email, action, details) {
+    try {
+        await db.prepare(
+            "INSERT INTO admin_activities (admin_email, action, details) VALUES (?, ?, ?)"
+        ).bind(email, action, details).run();
+    } catch(e) {
+        console.error("Failed to log admin activity:", e);
+    }
+}
+
 // Helper to parse base64 and write to R2
 async function uploadBase64ToR2(base64Data, bucket) {
     if (!base64Data || !base64Data.includes(",")) return null;
@@ -775,6 +801,11 @@ export default {
                     ).bind(passHash, password, userId).run();
                 }
 
+                const targetUser = await env.DB.prepare("SELECT email FROM profiles WHERE id = ?").bind(userId).first();
+                const targetEmail = targetUser ? targetUser.email : userId;
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "USER_UPDATE", `Updated user ${targetEmail} (Plan: ${plan_type}, Slots: ${pc_slots}, Status: ${status}, Blacklist: ${is_blacklisted ? 1 : 0}, Discount: ${custom_discount || 0}%)`);
+
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
@@ -788,6 +819,11 @@ export default {
                 const { userId } = await request.json();
                 await env.DB.prepare("UPDATE profiles SET approval_status = 'approved' WHERE id = ?").bind(userId).run();
 
+                const targetUser = await env.DB.prepare("SELECT email FROM profiles WHERE id = ?").bind(userId).first();
+                const targetEmail = targetUser ? targetUser.email : userId;
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "USER_APPROVE", `Approved registration access for ${targetEmail}`);
+
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
@@ -800,6 +836,11 @@ export default {
 
                 const { userId } = await request.json();
                 
+                const targetUser = await env.DB.prepare("SELECT email FROM profiles WHERE id = ?").bind(userId).first();
+                const targetEmail = targetUser ? targetUser.email : userId;
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "USER_DELETE", `Permanently deleted user account ${targetEmail}`);
+
                 // Delete user profile (ON DELETE CASCADE handles subscriptions table automatically)
                 await env.DB.prepare("DELETE FROM profiles WHERE id = ?").bind(userId).run();
 
@@ -858,6 +899,8 @@ export default {
                     </div>
                 `;
                 ctx.waitUntil(sendEmail(emailClean, "Apna Downloader - Admin Panel Access Granted! 🛡️", adminEmailHtml, env));
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "ROLE_GRANT", `Granted administrator access to ${emailClean} (${first_name} ${last_name})`);
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
@@ -874,6 +917,9 @@ export default {
                 await env.DB.prepare(
                     "UPDATE pricing_configs SET price = ?, active_discount = ?, is_enabled = ? WHERE id = ?"
                 ).bind(price, promo_discount, is_enabled, configId).run();
+
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "PRICING_UPDATE", `Updated pricing configuration for ${configId} (Price: Rs. ${price}, Discount: ${promo_discount}%, Enabled: ${is_enabled})`);
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
@@ -1292,6 +1338,9 @@ export default {
                 `;
                 ctx.waitUntil(sendEmail(claim.email, "Payment Approved - Premium License Activated! 🎉", approveHtml, env));
 
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "CLAIM_APPROVE", `Approved manual payment claim #${claimId} from ${claim.email} (License key: ${licenseKey})`);
+
                 return new Response(JSON.stringify({ success: true, message: "Claim approved and license activated successfully!" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
@@ -1340,6 +1389,9 @@ export default {
                     </div>
                 `;
                 ctx.waitUntil(sendEmail(claim.email, "Payment Verification Action Required ⚠️", rejectHtml, env));
+
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "CLAIM_REJECT", `Rejected manual payment claim #${claimId} from ${claim.email} (Reason: ${notes.trim()})`);
 
                 return new Response(JSON.stringify({ success: true, message: "Claim has been successfully rejected." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
@@ -1439,6 +1491,9 @@ export default {
                     "DELETE FROM support_messages WHERE id = ?"
                 ).bind(id).run();
 
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "SUPPORT_RESOLVE", `Deleted/Resolved support message ID: ${id}`);
+
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
@@ -1468,6 +1523,105 @@ export default {
                 ).bind(hashed, password, emailClean).run();
 
                 return new Response(JSON.stringify({ success: true, message: "Password updated successfully in database." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 6. ADMIN: GET ANALYTICS DATA
+            if (path === "/api/admin/analytics" && request.method === "GET") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                // Get daily signups over the last 30 days
+                const signups = await env.DB.prepare(
+                    "SELECT strftime('%Y-%m-%d', created_at) AS date, COUNT(*) AS count FROM profiles WHERE created_at >= date('now', '-30 days') GROUP BY date ORDER BY date ASC"
+                ).all();
+
+                // Get plan distribution counts
+                const plans = await env.DB.prepare(
+                    "SELECT plan_type, COUNT(*) AS count FROM subscriptions GROUP BY plan_type"
+                ).all();
+
+                return new Response(JSON.stringify({ 
+                    success: true, 
+                    signups: signups.results || [], 
+                    plans: plans.results || [] 
+                }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 7. ADMIN: GET ACTIVITY LOGS
+            if (path === "/api/admin/activities" && request.method === "GET") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const logs = await env.DB.prepare(
+                    "SELECT id, admin_email, action, details, created_at FROM admin_activities ORDER BY created_at DESC LIMIT 100"
+                ).all();
+
+                return new Response(JSON.stringify({ success: true, logs: logs.results || [] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 8. ADMIN: PUBLISH SOFTWARE RELEASE
+            if (path === "/api/admin/releases/create" && request.method === "POST") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { version, download_url, changelog, is_mandatory } = await request.json();
+                if (!version || !download_url) {
+                    return new Response(JSON.stringify({ success: false, error: "Version and download URL are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                await env.DB.prepare(
+                    "INSERT INTO app_releases (version, download_url, changelog, is_mandatory) VALUES (?, ?, ?, ?)"
+                ).bind(version.trim(), download_url.trim(), changelog || "", is_mandatory ? 1 : 0).run();
+
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "RELEASE_PUBLISH", `Published app version release ${version.trim()}`);
+
+                return new Response(JSON.stringify({ success: true, message: "Release published successfully!" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 9. ADMIN: GET RELEASES
+            if (path === "/api/admin/releases" && request.method === "GET") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const releases = await env.DB.prepare(
+                    "SELECT id, version, download_url, changelog, is_mandatory, created_at FROM app_releases ORDER BY created_at DESC"
+                ).all();
+
+                return new Response(JSON.stringify({ success: true, releases: releases.results || [] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // 10. PUBLIC: GET LATEST RELEASE (No auth)
+            if (path === "/api/app/latest" && request.method === "GET") {
+                const latest = await env.DB.prepare(
+                    "SELECT version, download_url, changelog, is_mandatory, created_at FROM app_releases ORDER BY created_at DESC LIMIT 1"
+                ).first();
+
+                if (!latest) {
+                    return new Response(JSON.stringify({ 
+                        success: true, 
+                        latest: {
+                            version: "1.0.0",
+                            download_url: "https://github.com/mairajroonjha/apna-downloader/releases/download/v1.0.0/Apna.Dowanloader.Setup.1.0.0.exe",
+                            changelog: "Initial stable launch release.",
+                            is_mandatory: 0
+                        }
+                    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                return new Response(JSON.stringify({ success: true, latest }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
             return new Response(JSON.stringify({ success: false, error: "Not Found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });

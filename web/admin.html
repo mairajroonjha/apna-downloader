@@ -54,6 +54,23 @@
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
         }
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .chart-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
         .stat-card {
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -259,6 +276,9 @@
             .stats-row {
                 grid-template-columns: 1fr !important;
             }
+            .charts-row {
+                grid-template-columns: 1fr !important;
+            }
             #add-admin-form {
                 flex-direction: column;
                 align-items: stretch !important;
@@ -275,6 +295,7 @@
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -370,6 +391,12 @@
                     <button id="admin-tab-support" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('support')">
                         <i class="fa-solid fa-envelope-open-text"></i> Support Inbox
                     </button>
+                    <button id="admin-tab-activities" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('activities')">
+                        <i class="fa-solid fa-clipboard-list"></i> Activity Logs
+                    </button>
+                    <button id="admin-tab-releases" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('releases')">
+                        <i class="fa-solid fa-code-branch"></i> App Releases
+                    </button>
                     <button id="admin-tab-settings" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('settings')">
                         <i class="fa-solid fa-gear"></i> Settings
                     </button>
@@ -383,6 +410,8 @@
                         <option value="roles">🛡️ Admin Roles</option>
                         <option value="claims">💵 Payment Claims</option>
                         <option value="support">✉️ Support Inbox</option>
+                        <option value="activities">📜 Activity Logs</option>
+                        <option value="releases">🚀 App Releases</option>
                         <option value="settings">⚙️ Settings</option>
                     </select>
                 </div>
@@ -401,6 +430,22 @@
                 <div class="stat-card">
                     <h4>Active Hardware Slots Bound</h4>
                     <div id="stat-active-slots">0 / 0</div>
+                </div>
+            </div>
+
+            <!-- Visual Analytics Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h4 style="color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px;"><i class="fa-solid fa-chart-line" style="color: var(--accent-color);"></i> User Registrations Timeline (Past 30 Days)</h4>
+                    <div style="flex: 1; position: relative; height: 230px; width: 100%;">
+                        <canvas id="signupsChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h4 style="color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px;"><i class="fa-solid fa-chart-pie" style="color: var(--accent-color);"></i> Subscription Plan Distribution</h4>
+                    <div style="flex: 1; position: relative; height: 230px; width: 100%;">
+                        <canvas id="plansChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -582,6 +627,67 @@
                         </thead>
                         <tbody id="support-table-body">
                             <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading support messages...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page 4b: Activity Logs Tab -->
+            <div id="admin-page-activities" class="card-glass" style="padding: 25px 30px; display: none;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; margin: 0 0 4px 0;"><i class="fa-solid fa-clipboard-list"></i> Administrative Audit Activity Logs</h3>
+                    <p style="color: var(--text-muted); font-size: 12px; margin: 0;">Comprehensive audit trail of administrator activities, settings modifications, role actions, and transaction processing.</p>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Admin Email</th>
+                                <th>Action Event</th>
+                                <th>Action Details Log</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activities-table-body">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading activity logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page 4c: App Releases Manager Tab -->
+            <div id="admin-page-releases" class="card-glass" style="padding: 25px 30px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 25px;">
+                    <div>
+                        <h3 style="font-size: 16px; margin: 0 0 4px 0;"><i class="fa-solid fa-code-branch"></i> Software Release Distribution Manager</h3>
+                        <p style="color: var(--text-muted); font-size: 12px; margin: 0;">Publish new Windows setup releases, write changelogs, and define mandatory updates.</p>
+                    </div>
+                    <!-- Publish New Release Form -->
+                    <form id="add-release-form" onsubmit="handlePublishReleaseSubmit(event)" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: rgba(0,0,0,0.15); padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 850px; box-sizing: border-box;">
+                        <input type="text" id="release-version" placeholder="Version (e.g. 1.0.1)" required style="padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; width: 140px;">
+                        <input type="url" id="release-download-url" placeholder="Direct Download URL (e.g. GitHub/GDrive link)" required style="padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; flex: 1; min-width: 250px;">
+                        <input type="text" id="release-changelog" placeholder="Changelog (e.g. Speed improvements)" style="padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px; outline: none; width: 220px;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--warning-color); padding: 0 5px; user-select: none;">
+                            <input type="checkbox" id="release-mandatory" style="width: 15px; height: 15px; cursor: pointer;"> Mandatory Update
+                        </label>
+                        <button type="submit" class="btn-submit" style="padding: 8px 16px; font-size: 12px; margin: 0; background: linear-gradient(135deg, var(--accent-color) 0%, #2563eb 100%);"><i class="fa-solid fa-upload"></i> Publish Release</button>
+                    </form>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Publish Date</th>
+                                <th>Version</th>
+                                <th>Download Endpoint Link</th>
+                                <th>Changelog Details</th>
+                                <th>Status Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="releases-table-body">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading published releases...</td></tr>
                         </tbody>
                     </table>
                 </div>

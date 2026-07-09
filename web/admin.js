@@ -282,6 +282,12 @@ function switchAdminTab(tabName) {
     const pageSupport = document.getElementById("admin-page-support");
     const pageSettings = document.getElementById("admin-page-settings");
     
+    // Sync mobile select dropdown if present
+    const mobileSelect = document.getElementById("admin-mobile-tabs");
+    if (mobileSelect) {
+        mobileSelect.value = tabName;
+    }
+    
     // Reset active states
     [tabUsers, tabPricing, tabRoles, tabClaims, tabSupport, tabSettings].forEach(btn => btn?.classList.remove("active"));
     [pageUsers, pagePricing, pageRoles, pageClaims, pageSupport, pageSettings].forEach(page => {

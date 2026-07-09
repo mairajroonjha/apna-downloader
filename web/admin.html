@@ -242,6 +242,12 @@
                 align-items: flex-start !important;
                 gap: 15px;
             }
+            #admin-desktop-tabs {
+                display: none !important;
+            }
+            #admin-mobile-tabs-container {
+                display: block !important;
+            }
             .container {
                 padding-top: 130px !important;
             }
@@ -347,7 +353,8 @@
                     <p>Track metrics, override licenses manually, and configure dynamic pricing campaigns.</p>
                 </div>
                 <!-- Tab Switching Navigation -->
-                <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <!-- Tab Switching Navigation -->
+                <div id="admin-desktop-tabs" style="display: flex; gap: 10px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; border: 1px solid var(--border-color); flex-wrap: wrap;">
                     <button id="admin-tab-users" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('users')">
                         <i class="fa-solid fa-users"></i> Users Roster
                     </button>
@@ -366,6 +373,18 @@
                     <button id="admin-tab-settings" class="action-btn" style="border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600;" onclick="switchAdminTab('settings')">
                         <i class="fa-solid fa-gear"></i> Settings
                     </button>
+                </div>
+                
+                <!-- Mobile Select Dropdown for Tabs -->
+                <div id="admin-mobile-tabs-container" style="display: none; width: 100%; margin-top: 15px;">
+                    <select id="admin-mobile-tabs" onchange="switchAdminTab(this.value)" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 14px; font-weight: 600; outline: none; cursor: pointer;">
+                        <option value="users">👥 Users Roster</option>
+                        <option value="pricing">🏷️ Pricing Schemes</option>
+                        <option value="roles">🛡️ Admin Roles</option>
+                        <option value="claims">💵 Payment Claims</option>
+                        <option value="support">✉️ Support Inbox</option>
+                        <option value="settings">⚙️ Settings</option>
+                    </select>
                 </div>
             </div>
 

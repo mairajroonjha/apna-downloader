@@ -181,6 +181,127 @@
             </div>
         </section>
 
+        <!-- Playlist Downloader Section -->
+        <section id="playlist-feature" style="scroll-margin-top: 160px; margin-top: 80px;">
+            <div style="text-align: center; margin-bottom: 45px;">
+                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px;"><span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><i class="fa-solid fa-list-check"></i> YouTube Playlist Batch Downloader</span></h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Parse whole playlists in one click, choose video resolutions, and download everything simultaneously.</p>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: center; max-width: 1050px; margin: 0 auto;">
+                
+                <!-- Left Side: Interactive 3D Mockup -->
+                <div class="hero-graphic" style="flex: 1.1; min-width: 320px; max-width: 550px;">
+                    <div class="pricing-card-3d" style="padding: 25px 30px; text-align: left; box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-color: rgba(59, 130, 246, 0.25);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <div style="display: flex; gap: 6px;">
+                                <div style="width: 11px; height: 11px; border-radius: 50%; background: var(--danger-color);"></div>
+                                <div style="width: 11px; height: 11px; border-radius: 50%; background: var(--warning-color);"></div>
+                                <div style="width: 11px; height: 11px; border-radius: 50%; background: var(--success-color);"></div>
+                            </div>
+                            <span style="font-size: 11px; color: var(--accent-color); font-weight: 700; background: rgba(59,130,246,0.12); padding: 4px 10px; border-radius: 20px;"><i class="fa-brands fa-youtube"></i> Playlist Parser Mode</span>
+                        </div>
+
+                        <!-- Mock Input Box -->
+                        <div style="margin-bottom: 18px;">
+                            <label style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Enter Playlist URL</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" class="contact-input-3d" value="https://www.youtube.com/playlist?list=PL_custom_js_course" style="flex: 1; font-size: 11px; height: 38px; padding: 0 12px !important; margin: 0;" readonly>
+                                <button class="contact-btn-3d" style="padding: 0 18px !important; font-size: 11px; height: 38px; display: inline-flex; align-items: center; gap: 5px; margin: 0;" onclick="simulatePlaylistDemo()"><i class="fa-solid fa-magnifying-glass"></i> Parse</button>
+                            </div>
+                        </div>
+
+                        <!-- Status bar -->
+                        <div id="playlist-demo-status" style="font-size: 12px; font-weight: 600; color: var(--success-color); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-circle-check"></i> Ready to import: 4 videos detected!
+                        </div>
+
+                        <!-- Videos list -->
+                        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 8px; max-height: 180px; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.03);">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" checked style="accent-color: var(--accent-color); cursor: pointer;">
+                                    <span>1. Introduction to Web Dev (1080p)</span>
+                                </span>
+                                <span style="color: var(--text-muted);">184 MB</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.03);">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" checked style="accent-color: var(--accent-color); cursor: pointer;">
+                                    <span>2. JavaScript Basics Crash Course (1080p)</span>
+                                </span>
+                                <span style="color: var(--text-muted);">292 MB</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.03);">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" checked style="accent-color: var(--accent-color); cursor: pointer;">
+                                    <span>3. CSS Grid & Flexbox Mastery (720p)</span>
+                                </span>
+                                <span style="color: var(--text-muted);">145 MB</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.03);">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" checked style="accent-color: var(--accent-color); cursor: pointer;">
+                                    <span>4. Build a Portfolio Website (1080p)</span>
+                                </span>
+                                <span style="color: var(--text-muted);">412 MB</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar & Download Button -->
+                        <div id="playlist-demo-progress-container" style="display: none; margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">
+                                <span id="playlist-demo-progress-text">Downloading 4 files simultaneously...</span>
+                                <span id="playlist-demo-pct" style="color: var(--success-color); font-weight: 700;">0%</span>
+                            </div>
+                            <div style="height: 8px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 4px; position: relative; overflow: hidden;">
+                                <div id="playlist-demo-bar" style="position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: width 0.1s ease;"></div>
+                            </div>
+                        </div>
+
+                        <button id="playlist-demo-btn" class="pricing-btn-3d" style="margin: 0; background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; border-bottom: 4px solid #047857 !important;" onclick="startPlaylistSimulate()">
+                            <i class="fa-solid fa-download"></i> Start Batch Download (1.0 GB)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Side: Text & Value Prop -->
+                <div style="flex: 0.9; min-width: 300px; text-align: left;">
+                    <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-layer-group" style="color: var(--accent-color);"></i> Simultaneous Queue Processing
+                    </h3>
+                    <p style="font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 25px;">
+                        Apna Downloader features a native multi-item batch parser. Simply paste your favorite playlists, courses, or albums, and let the engine distribute connections across all files for max bandwidth utilization.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="color: var(--success-color); font-size: 16px; margin-top: 2px;"><i class="fa-solid fa-check-double"></i></div>
+                            <div>
+                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 4px;">Smart Media Scraper</h4>
+                                <p style="font-size: 12px; color: var(--text-muted);">Extracts clear video details, direct audio tracks, and subtitles seamlessly from playlists.</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="color: var(--success-color); font-size: 16px; margin-top: 2px;"><i class="fa-solid fa-check-double"></i></div>
+                            <div>
+                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 4px;">Dynamic Thread Optimization</h4>
+                                <p style="font-size: 12px; color: var(--text-muted);">Splits each queued file dynamically so your computer receives maximum speed on all concurrent items.</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="color: var(--success-color); font-size: 16px; margin-top: 2px;"><i class="fa-solid fa-check-double"></i></div>
+                            <div>
+                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 4px;">Auto-File Renaming & Tagging</h4>
+                                <p style="font-size: 12px; color: var(--text-muted);">Keeps downloaded tracks cleanly numbered and organized inside your target folder trees.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
         <!-- Setup Guide Section -->
         <section id="install-guide" style="scroll-margin-top: 160px;">
             <div style="text-align: center; margin-bottom: 45px;">
@@ -430,6 +551,86 @@
                     successToast.style.display = "none";
                 }, 8000);
             }
+        }
+
+        // Simulated Interactive Playlist Downloader Demo
+        let demoInProgress = false;
+        function simulatePlaylistDemo() {
+            if (demoInProgress) return;
+            const status = document.getElementById("playlist-demo-status");
+            const btn = document.getElementById("playlist-demo-btn");
+            const progressContainer = document.getElementById("playlist-demo-progress-container");
+            const bar = document.getElementById("playlist-demo-bar");
+            const pct = document.getElementById("playlist-demo-pct");
+            
+            formResetDemo();
+            status.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Reading YouTube API Metadata...`;
+            status.style.color = "var(--accent-color)";
+            
+            setTimeout(() => {
+                status.innerHTML = `<i class="fa-solid fa-circle-check"></i> Ready to import: 4 videos detected!`;
+                status.style.color = "var(--success-color)";
+            }, 1500);
+        }
+        
+        function formResetDemo() {
+            const progressContainer = document.getElementById("playlist-demo-progress-container");
+            const bar = document.getElementById("playlist-demo-bar");
+            const pct = document.getElementById("playlist-demo-pct");
+            const btn = document.getElementById("playlist-demo-btn");
+            const status = document.getElementById("playlist-demo-status");
+            
+            progressContainer.style.display = "none";
+            bar.style.width = "0%";
+            pct.innerText = "0%";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-download"></i> Start Batch Download (1.0 GB)`;
+            status.innerHTML = `<i class="fa-solid fa-circle-check"></i> Ready to import: 4 videos detected!`;
+            status.style.color = "var(--success-color)";
+            demoInProgress = false;
+        }
+
+        function startPlaylistSimulate() {
+            if (demoInProgress) return;
+            demoInProgress = true;
+            
+            const btn = document.getElementById("playlist-demo-btn");
+            const progressContainer = document.getElementById("playlist-demo-progress-container");
+            const bar = document.getElementById("playlist-demo-bar");
+            const pct = document.getElementById("playlist-demo-pct");
+            const status = document.getElementById("playlist-demo-status");
+            const progressText = document.getElementById("playlist-demo-progress-text");
+            
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Downloading Queue...`;
+            progressContainer.style.display = "block";
+            status.innerHTML = `<i class="fa-solid fa-hourglass-half"></i> Processing batch queue...`;
+            status.style.color = "var(--warning-color)";
+            
+            let percentage = 0;
+            const interval = setInterval(() => {
+                percentage += Math.floor(Math.random() * 8) + 4;
+                if (percentage >= 100) {
+                    percentage = 100;
+                    clearInterval(interval);
+                    
+                    bar.style.width = "100%";
+                    pct.innerText = "100%";
+                    status.innerHTML = `<i class="fa-solid fa-circle-check"></i> All 4 videos downloaded successfully!`;
+                    status.style.color = "var(--success-color)";
+                    progressText.innerText = "Batch task completed.";
+                    btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> Reset Simulation`;
+                    btn.disabled = false;
+                    btn.onclick = () => {
+                        formResetDemo();
+                        btn.onclick = startPlaylistSimulate;
+                    };
+                } else {
+                    bar.style.width = `${percentage}%`;
+                    pct.innerText = `${percentage}%`;
+                    progressText.innerText = `Downloading: ${percentage}% completed (at 48.2 MB/s)`;
+                }
+            }, 150);
         }
 
         // Active class nav link scroll highlighting

@@ -76,7 +76,7 @@ function renderPricing() {
         if (p.pc_slots === 3) sub = `Best value pack for small families`;
         
         const card = document.createElement("div");
-        card.className = `card-glass pricing-card ${p.pc_slots === 2 ? 'popular' : ''}`;
+        card.className = `pricing-card-3d ${p.pc_slots === 2 ? 'popular' : ''}`;
         
         const isComingSoon = p.is_enabled === 2;
         
@@ -105,8 +105,8 @@ function renderPricing() {
                 </ul>
             </div>
             ${isComingSoon ? 
-                `<button class="btn-pricing" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border-color: rgba(255,255,255,0.1); cursor: not-allowed;" disabled>Coming Soon</button>` : 
-                `<button class="btn-pricing" onclick="buyPlan('${p.id}')">Get Started</button>`
+                `<button class="pricing-btn-3d" style="background: rgba(255,255,255,0.05) !important; border-bottom: 4px solid rgba(255,255,255,0.1) !important; color: var(--text-muted) !important; cursor: not-allowed;" disabled>Coming Soon</button>` : 
+                `<button class="pricing-btn-3d" onclick="buyPlan('${p.id}')">Get Started</button>`
             }
         `;
         container.appendChild(card);

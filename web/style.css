@@ -526,3 +526,83 @@ footer {
     border-bottom-width: 1px !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* Premium 3D Pricing Card Styles */
+.pricing-card-3d {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.55) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-bottom: 5px solid rgba(59, 130, 246, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease, border-bottom 0.3s ease;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.pricing-card-3d:hover {
+    transform: translateY(-8px) rotateX(1.5deg) rotateY(-1.5deg);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.35);
+    border-bottom: 5px solid rgba(59, 130, 246, 0.7);
+}
+
+/* Popular pricing card 3D style (Green highlights) */
+.pricing-card-3d.popular {
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    border-bottom: 5px solid rgba(16, 185, 129, 0.65);
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.1);
+}
+
+.pricing-card-3d.popular:hover {
+    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.6);
+    border-bottom: 5px solid rgba(16, 185, 129, 0.85);
+}
+
+/* 3D Pricing Button */
+.pricing-btn-3d {
+    width: 100%;
+    padding: 12px !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 4px solid #1d4ed8 !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.15s ease-in-out !important;
+    cursor: pointer !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.pricing-btn-3d:hover {
+    transform: translateY(-3px) !important;
+    border-bottom-width: 6px !important;
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.35) !important;
+}
+
+.pricing-btn-3d:active {
+    transform: translateY(2px) !important;
+    border-bottom-width: 1px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Green 3D Pricing Button for Popular Card */
+.pricing-card-3d.popular .pricing-btn-3d {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border-bottom: 4px solid #047857 !important;
+}
+
+.pricing-card-3d.popular .pricing-btn-3d:hover {
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35) !important;
+}
+

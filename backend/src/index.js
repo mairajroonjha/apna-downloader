@@ -204,51 +204,51 @@ function buildRedirectUrl(baseState, params) {
     return url.toString() + hash;
 }
 
-// Helper to send transactional emails via Resend
+// Helper to send transactional emails via Brevo (formerly Sendinblue)
 async function sendEmail(to, subject, htmlContent, env) {
-    const apiKey = env.RESEND_API_KEY;
+    const apiKey = env.BREVO_API_KEY;
     if (!apiKey) {
-        console.warn("[EMAIL] Skipping email delivery: RESEND_API_KEY is not configured.");
+        console.warn("[EMAIL] Skipping email delivery: BREVO_API_KEY is not configured.");
         return false;
     }
     
-    let recipient = to.toLowerCase().trim();
-    let finalSubject = subject;
-    const isSandbox = !env.EMAIL_FROM || env.EMAIL_FROM.includes("onboarding@resend.dev") || env.EMAIL_FROM.includes("resend.dev");
-    
-    if (isSandbox && recipient !== "mirajroonjha@gmail.com") {
-        console.log(`[EMAIL SANDBOX REROUTING] Original recipient: ${to}. Rerouting to mirajroonjha@gmail.com due to unverified sandbox domain.`);
-        recipient = "mirajroonjha@gmail.com";
-        finalSubject = `[Sandbox for: ${to}] ${subject}`;
-    }
-    
-    const sender = env.EMAIL_FROM || "Apna Downloader <onboarding@resend.dev>";
+    const recipient = to.toLowerCase().trim();
+    const senderEmail = env.EMAIL_FROM_EMAIL || "mirajroonjha@gmail.com";
+    const senderName = env.EMAIL_FROM_NAME || "Apna Downloader";
     
     try {
-        const response = await fetch("https://api.resend.com/emails", {
+        const response = await fetch("https://api.brevo.com/v3/smtp/email", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
+                "api-key": apiKey,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
             },
             body: JSON.stringify({
-                from: sender,
-                to: recipient,
-                subject: finalSubject,
-                html: htmlContent
+                sender: {
+                    name: senderName,
+                    email: senderEmail
+                },
+                to: [
+                    {
+                        email: recipient
+                    }
+                ],
+                subject: subject,
+                htmlContent: htmlContent
             })
         });
         
         if (!response.ok) {
             const errText = await response.text();
-            console.error(`[EMAIL ERROR] Resend returned status ${response.status}: ${errText}`);
+            console.error(`[EMAIL ERROR] Brevo returned status ${response.status}: ${errText}`);
             return false;
         }
         
-        console.log(`[EMAIL SUCCESS] Email sent successfully to ${recipient} (Subject: "${finalSubject}")`);
+        console.log(`[EMAIL SUCCESS] Email sent successfully via Brevo to ${recipient} (Subject: "${subject}")`);
         return true;
     } catch (e) {
-        console.error("[EMAIL ERROR] Failed to send email via Resend:", e);
+        console.error("[EMAIL ERROR] Failed to send email via Brevo:", e);
         return false;
     }
 }

@@ -49,14 +49,15 @@
             <a href="#" class="logo">
                 <i class="fa-solid fa-cloud-arrow-down"></i> Apna Downloader
             </a>
-            <nav>
-                <a href="#hero-section" class="active">Home</a>
-                <a href="#features">Features</a>
-                <a href="#install-guide">Setup Guide</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#support-section">Support</a>
-                <a href="#contact-section">Contact Us</a>
-                <a href="portal.html">Portal</a>
+            <nav id="navbar">
+                <a href="#hero-section" class="active" onclick="closeMobileMenu()">Home</a>
+                <a href="#features" onclick="closeMobileMenu()">Features</a>
+                <a href="#install-guide" onclick="closeMobileMenu()">Setup Guide</a>
+                <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+                <a href="#support-section" onclick="closeMobileMenu()">Support</a>
+                <a href="#contact-section" onclick="closeMobileMenu()">Contact Us</a>
+                <a href="portal.html" onclick="closeMobileMenu()">Portal</a>
+                <a href="https://github.com/mairajroonjha/apna-downloader/releases/download/v1.0.0/Apna.Dowanloader.Setup.1.0.0.exe" class="btn-nav-mobile" download onclick="closeMobileMenu()"><i class="fa-solid fa-download"></i> Download App</a>
             </nav>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none; transition: all 0.2s;" title="Toggle Light/Dark Theme">
@@ -66,6 +67,10 @@
                 <a href="https://github.com/mairajroonjha/apna-downloader/releases/download/v1.0.0/Apna.Dowanloader.Setup.1.0.0.exe" class="btn-nav" download>
                     <i class="fa-solid fa-download"></i> Download App
                 </a>
+                <button id="mobile-menu-btn" class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle Navigation Menu">
+                    <i class="fa-solid fa-bars" id="menu-icon-bars"></i>
+                    <i class="fa-solid fa-xmark" id="menu-icon-close" style="display: none;"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -631,6 +636,33 @@
                     progressText.innerText = `Downloading: ${percentage}% completed (at 48.2 MB/s)`;
                 }
             }, 150);
+        }
+
+        // Mobile Navigation Menu Toggle Functions
+        function toggleMobileMenu() {
+            const nav = document.getElementById("navbar");
+            const barsIcon = document.getElementById("menu-icon-bars");
+            const closeIcon = document.getElementById("menu-icon-close");
+            
+            if (nav.classList.contains("active")) {
+                nav.classList.remove("active");
+                barsIcon.style.display = "inline-block";
+                closeIcon.style.display = "none";
+            } else {
+                nav.classList.add("active");
+                barsIcon.style.display = "none";
+                closeIcon.style.display = "inline-block";
+            }
+        }
+        
+        function closeMobileMenu() {
+            const nav = document.getElementById("navbar");
+            const barsIcon = document.getElementById("menu-icon-bars");
+            const closeIcon = document.getElementById("menu-icon-close");
+            
+            nav.classList.remove("active");
+            if (barsIcon) barsIcon.style.display = "inline-block";
+            if (closeIcon) closeIcon.style.display = "none";
         }
 
         // Active class nav link scroll highlighting

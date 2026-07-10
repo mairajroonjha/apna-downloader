@@ -507,7 +507,7 @@ footer {
         margin-top: 10px;
     }
     
-    .btn-nav {
+    header .btn-nav {
         display: none !important;
     }
 

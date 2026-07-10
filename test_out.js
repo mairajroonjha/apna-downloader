@@ -1,1 +1,0 @@
-const PIPE_PATH = " \\\\.\\\\pipe\\\\apna-downloader-ipc;

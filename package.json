@@ -24,6 +24,12 @@
     "asarUnpack": [
       "bin/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "bin",
+        "to": "bin"
+      }
+    ],
     "win": {
       "icon": "src/icon.ico",
       "target": [
@@ -46,7 +52,6 @@
     },
     "files": [
       "**/*",
-      "!bin/**/*",
       "!browser-extension/**/*",
       "!browser-extension.crx",
       "!browser-extension.pem",

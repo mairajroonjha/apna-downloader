@@ -21,13 +21,18 @@ class YtDlpDownloader extends EventEmitter {
             localDir = localDir.replace('app.asar', 'app.asar.unpacked');
         }
 
-        // 2. Resolve user data directory bin folder (always writable)
+        // 2. Resolve process resources directory bin folder
+        const resourcesBin = process.resourcesPath ? path.join(process.resourcesPath, 'bin') : localDir;
+
+        // 3. Resolve user data directory bin folder (always writable)
         const userDir = path.join(app.getPath('userData'), 'bin');
 
-        // If binaries exist in the application folder (pre-packaged), use that.
-        // Otherwise, use the writable user directory for dynamic downloading.
+        // If binaries exist in localDir or resourcesBin, use that.
+        // Otherwise, fallback to writable user directory.
         if (fs.existsSync(path.join(localDir, this.binName))) {
             this.binDir = localDir;
+        } else if (fs.existsSync(path.join(resourcesBin, this.binName))) {
+            this.binDir = resourcesBin;
         } else {
             this.binDir = userDir;
         }

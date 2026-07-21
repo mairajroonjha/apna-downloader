@@ -48,7 +48,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Apna Dowanloader"
+      "shortcutName": "Apna Dowanloader",
+      "include": "build/installer.nsh"
     },
     "files": [
       "**/*",

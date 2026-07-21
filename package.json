@@ -49,6 +49,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Apna Dowanloader",
+      "deleteAppDataOnUninstall": true,
       "include": "build/installer.nsh"
     },
     "files": [

@@ -251,6 +251,9 @@ async function init() {
             const downloadedText = row.querySelector('.downloaded-text');
             if (downloadedText) downloadedText.innerText = `${formatBytes(data.downloaded)} / ${data.total ? formatBytes(data.total) : 'Unknown'}`;
 
+            const sizeCol = row.querySelector('.col-size');
+            if (sizeCol) sizeCol.innerText = data.total ? formatBytes(data.total) : 'Unknown';
+
             const statusBadge = row.querySelector('.status-badge');
             if (statusBadge) statusBadge.innerText = data.statusDetail || data.status || 'downloading';
 

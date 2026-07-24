@@ -1393,6 +1393,24 @@ ipcMain.handle('add-download', async (event, { url, savePath, numConnections, qu
         mainWindow.webContents.send('download-list-updated', downloads);
     }
 
+    // Fetch size asynchronously in the background
+    if (!url.startsWith('data:')) {
+        fetchMediaSizeHelper(url, quality).then(res => {
+            if (res && res.success && res.size > 0) {
+                const item = downloads.find(d => d.id === downloadId);
+                if (item) {
+                    item.totalSize = res.size;
+                    saveDownloads();
+                    if (mainWindow) {
+                        mainWindow.webContents.send('download-list-updated', downloads);
+                    }
+                }
+            }
+        }).catch(err => {
+            console.error('[Add Download] Background size pre-fetch failed:', err);
+        });
+    }
+
     if (!downloadLater) {
         if (settings.queueEnabled) {
             newDownload.status = 'queued';
@@ -1764,7 +1782,65 @@ ipcMain.handle('fetch-playlist-metadata', async (event, url) => {
 });
 
 // 15. Fetch Media Size
-ipcMain.handle('fetch-media-size', async (event, { url, quality }) => {
+async function fetchMediaSizeHelper(url, quality, depth = 0) {
+    if (depth > 5) return { success: false };
+    
+    if (!isStreamUrl(url)) {
+        return new Promise((resolve) => {
+            try {
+                const parsedUrl = new URL(url);
+                const isHttps = parsedUrl.protocol === 'https:';
+                const httpLib = isHttps ? require('https') : require('http');
+                
+                const req = httpLib.request(url, {
+                    method: 'HEAD',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    }
+                }, async (res) => {
+                    if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                        let redirectUrl = res.headers.location;
+                        if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
+                            redirectUrl = new URL(redirectUrl, url).href;
+                        }
+                        resolve(await fetchMediaSizeHelper(redirectUrl, quality, depth + 1));
+                        return;
+                    }
+                    
+                    const contentLength = res.headers['content-length'];
+                    const size = contentLength ? parseInt(contentLength, 10) : 0;
+                    
+                    let filename = path.basename(parsedUrl.pathname);
+                    const disposition = res.headers['content-disposition'];
+                    if (disposition && disposition.includes('filename=')) {
+                        const match = disposition.match(/filename=["']?([^"';]+)/);
+                        if (match && match[1]) {
+                            filename = match[1];
+                        }
+                    }
+                    if (!filename || filename === '/' || filename === '.') {
+                        filename = 'download';
+                    }
+                    
+                    resolve({ success: true, size, title: filename });
+                });
+                
+                req.on('error', () => {
+                    resolve({ success: false });
+                });
+                
+                req.setTimeout(5000, () => {
+                    req.destroy();
+                    resolve({ success: false });
+                });
+                
+                req.end();
+            } catch (e) {
+                resolve({ success: false });
+            }
+        });
+    }
+
     const dummy = new YtDlpDownloader(url, 'dummy-path');
     await dummy.ensureBinary();
     
@@ -1776,7 +1852,9 @@ ipcMain.handle('fetch-media-size', async (event, { url, quality }) => {
             url,
             '--dump-single-json',
             '--no-warnings',
-            '-J'
+            '-J',
+            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            '--extractor-args', 'youtube:player_client=android,web'
         ];
         
         const spawnEnv = { ...process.env };
@@ -1860,6 +1938,10 @@ ipcMain.handle('fetch-media-size', async (event, { url, quality }) => {
             resolve({ success: false });
         });
     });
+}
+
+ipcMain.handle('fetch-media-size', async (event, { url, quality }) => {
+    return await fetchMediaSizeHelper(url, quality);
 });
 
 

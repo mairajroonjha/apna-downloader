@@ -490,11 +490,11 @@ export default {
                     return new Response(JSON.stringify({ success: false, error: "No subscription record found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 }
 
-                // Check Trial Expiration
+                // Check Subscription / Trial Expiration
                 let currentStatus = sub.status;
                 let trialDaysLeft = 0;
 
-                if (sub.plan_type === 'trial' || sub.plan_type === 'monthly' || sub.plan_type === 'yearly') {
+                if (sub.plan_type !== 'lifetime') {
                     if (sub.plan_type === 'trial' && !sub.trial_end) {
                         return new Response(JSON.stringify({
                             success: false,

@@ -494,21 +494,24 @@ export default {
                 let currentStatus = sub.status;
                 let trialDaysLeft = 0;
 
-                if (sub.plan_type === 'trial') {
-                    if (!sub.trial_end) {
+                if (sub.plan_type === 'trial' || sub.plan_type === 'monthly' || sub.plan_type === 'yearly') {
+                    if (sub.plan_type === 'trial' && !sub.trial_end) {
                         return new Response(JSON.stringify({
                             success: false,
                             status: "trial_not_started",
                             message: "You have not activated your free trial yet. Start your trial to begin downloading."
                         }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                     }
-                    const now = new Date();
-                    const end = new Date(sub.trial_end);
-                    if (now > end) {
-                        currentStatus = 'expired';
-                        await env.DB.prepare("UPDATE subscriptions SET status = 'expired' WHERE user_id = ?").bind(decoded.userId).run();
-                    } else {
-                        trialDaysLeft = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
+                    
+                    if (sub.trial_end) {
+                        const now = new Date();
+                        const end = new Date(sub.trial_end);
+                        if (now > end) {
+                            currentStatus = 'expired';
+                            await env.DB.prepare("UPDATE subscriptions SET status = 'expired' WHERE user_id = ?").bind(decoded.userId).run();
+                        } else if (sub.plan_type === 'trial') {
+                            trialDaysLeft = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
+                        }
                     }
                 }
 

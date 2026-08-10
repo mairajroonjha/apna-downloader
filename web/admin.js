@@ -50,6 +50,32 @@ function showAuth() {
     adminDisplay.style.display = "none";
 }
 
+function handlePlanTypeChange() {
+    const planType = document.getElementById("edit-plan-type").value;
+    const trialEndInput = document.getElementById("edit-trial-end");
+    
+    if (planType === 'lifetime') {
+        trialEndInput.value = "";
+        return;
+    }
+    
+    const now = new Date();
+    if (planType === 'trial') {
+        now.setDate(now.getDate() + 15);
+    } else if (planType === 'monthly') {
+        now.setMonth(now.getMonth() + 1);
+    } else if (planType === 'yearly') {
+        now.setFullYear(now.getFullYear() + 1);
+    }
+    
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    trialEndInput.value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
+
 async function showDashboard() {
     authSection.style.display = "none";
     dashboardSection.style.display = "block";
@@ -58,6 +84,13 @@ async function showDashboard() {
     await Promise.all([loadUsers(), loadPricing()]);
     calculateStats();
     switchAdminTab('users');
+    
+    // Add plan type select event listener
+    const planTypeSelect = document.getElementById("edit-plan-type");
+    if (planTypeSelect) {
+        planTypeSelect.removeEventListener("change", handlePlanTypeChange);
+        planTypeSelect.addEventListener("change", handlePlanTypeChange);
+    }
 }
 
 async function loadUsers() {
@@ -145,11 +178,30 @@ function renderUsers(usersList = usersCached) {
                     expiry = new Date(u.trial_end).toLocaleDateString();
                 } else {
                     statusBadge = `<span class="badge danger">EXPIRED</span>`;
-                    expiry = '-';
+                    expiry = new Date(u.trial_end).toLocaleDateString() + ' (Expired)';
+                }
+            }
+        } else if (u.plan_type === 'monthly' || u.plan_type === 'yearly') {
+            // Paid plans (monthly, yearly)
+            if (u.trial_end) {
+                const isPlanActive = new Date(u.trial_end) > new Date() && u.status === 'active';
+                if (isPlanActive) {
+                    statusBadge = `<span class="badge success">ACTIVE</span>`;
+                    expiry = new Date(u.trial_end).toLocaleDateString();
+                } else {
+                    statusBadge = `<span class="badge danger">EXPIRED</span>`;
+                    expiry = new Date(u.trial_end).toLocaleDateString() + ' (Expired)';
+                }
+            } else {
+                expiry = 'N/A';
+                if (u.status === 'active') {
+                    statusBadge = `<span class="badge success">ACTIVE</span>`;
+                } else {
+                    statusBadge = `<span class="badge danger">EXPIRED</span>`;
                 }
             }
         } else {
-            // Paid plans (monthly, yearly, lifetime)
+            // Lifetime
             expiry = 'N/A';
             if (u.status === 'active') {
                 statusBadge = `<span class="badge success">ACTIVE</span>`;

@@ -2823,13 +2823,15 @@ async function loadProfilePortal() {
             
             const expiry = document.getElementById("profile-expiry");
             if (expiry) {
-                if (profile.plan_type === 'trial' && profile.trial_end) {
+                if ((profile.plan_type === 'trial' || profile.plan_type === 'monthly' || profile.plan_type === 'yearly') && profile.trial_end) {
                     const expiryDate = new Date(profile.trial_end);
-                    expiry.innerText = expiryDate.toLocaleDateString();
-                } else if (profile.plan_type !== 'trial') {
-                    expiry.innerText = "Lifetime Plan / Active";
-                } else {
+                    expiry.innerText = expiryDate.toLocaleDateString() + ' ' + expiryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } else if (profile.plan_type === 'lifetime') {
+                    expiry.innerText = "Lifetime Plan (Active)";
+                } else if (profile.plan_type === 'trial' && !profile.trial_end) {
                     expiry.innerText = "Not Activated (Free Trial Available)";
+                } else {
+                    expiry.innerText = "Active";
                 }
             }
 

@@ -1559,7 +1559,7 @@ async function handlePublishReleaseSubmit(event) {
 async function loadAdminSystemSettings() {
     const token = getAdminToken();
     try {
-        const res = await fetch(`${API_BASE}/api/admin/settings`, {
+        const res = await fetch(`${BACKEND_URL}/api/admin/settings`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await res.json();
@@ -1589,7 +1589,7 @@ async function handleSaveTrialDays(e) {
 
     try {
         const token = getAdminToken();
-        const res = await fetch(`${API_BASE}/api/admin/settings/update`, {
+        const res = await fetch(`${BACKEND_URL}/api/admin/settings/update`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -1634,7 +1634,7 @@ async function handleSaveNotificationEmails(e) {
 
     try {
         const token = getAdminToken();
-        const res = await fetch(`${API_BASE}/api/admin/settings/update`, {
+        const res = await fetch(`${BACKEND_URL}/api/admin/settings/update`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -15,6 +15,11 @@ async function loadPricing() {
         const data = await res.json();
         if (data.success) {
             pricingData = data.pricing;
+            if (data.trial_days) {
+                document.querySelectorAll(".trial-days-count").forEach(el => {
+                    el.innerText = data.trial_days;
+                });
+            }
             renderPricing();
         }
     } catch (e) {

@@ -739,7 +739,10 @@ export default {
                     };
                 });
 
-                return new Response(JSON.stringify({ success: true, pricing: modifiedPrices }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                const sysSettings = await getSystemSettings(env);
+                const trialDays = parseInt(sysSettings.trial_days || "15", 10) || 15;
+
+                return new Response(JSON.stringify({ success: true, pricing: modifiedPrices, trial_days: trialDays }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
             // 6b. ADMIN AUTHENTICATION - DIRECT LOGIN (Bypasses OTP)
@@ -1047,10 +1050,10 @@ export default {
                 sendAdminNotification(
                     env, ctx,
                     `Free Trial Activated: ${userEmail}`,
-                    `15-Day Free Trial Activated`,
+                    `${trialDays}-Day Free Trial Activated`,
                     `<p style="margin: 6px 0; color: #cbd5e1;"><strong>User Name:</strong> ${userName}</p>
                      <p style="margin: 6px 0; color: #cbd5e1;"><strong>Email:</strong> ${userEmail}</p>
-                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Plan Activated:</strong> Free Trial (15 Days)</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Plan Activated:</strong> Free Trial (${trialDays} Days)</p>
                      <p style="margin: 6px 0; color: #cbd5e1;"><strong>PC Slots:</strong> 1 Slot</p>
                      <p style="margin: 6px 0; color: #cbd5e1;"><strong>Trial Expiry Date:</strong> ${trialEndDate.toLocaleDateString()}</p>`
                 );

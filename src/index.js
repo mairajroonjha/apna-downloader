@@ -361,7 +361,7 @@ async function init() {
                         lockIcon.style.filter = "drop-shadow(0 0 10px rgba(59, 130, 246, 0.3))";
                     }
                     if (paywallLockMessage) {
-                        paywallLockMessage.innerText = "Welcome! Activate your 15-day free trial now to unlock unlimited downloading capabilities.";
+                        paywallLockMessage.innerText = "Welcome! Activate your free trial now to unlock unlimited downloading capabilities.";
                     }
                     if (btnPaywallBuy) {
                         btnPaywallBuy.innerHTML = `<i class="fa-solid fa-circle-play"></i> Activate Free Trial`;
@@ -395,7 +395,7 @@ async function init() {
                 btnPaywallBuy.disabled = false;
                 if (res && res.success) {
                     if (paywallLockOverlay) paywallLockOverlay.style.display = 'none';
-                    alert("Your 15-day free trial has been activated successfully!");
+                    alert("Your free trial has been activated successfully!");
                     // Trigger dynamic profile updates
                     if (typeof loadProfilePortal === 'function') {
                         loadProfilePortal();
@@ -2921,7 +2921,7 @@ if (btnProfileActivate) {
         const res = await window.api.activateFreeTrial();
         btnProfileActivate.disabled = false;
         if (res && res.success) {
-            alert("Your 15-day free trial has been activated successfully!");
+            alert("Your free trial has been activated successfully!");
             loadProfilePortal();
         } else {
             alert(res.error || "Failed to activate free trial.");

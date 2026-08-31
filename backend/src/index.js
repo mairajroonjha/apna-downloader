@@ -889,8 +889,59 @@ export default {
                     ).bind(passHash, password, userId).run();
                 }
 
-                const targetUser = await env.DB.prepare("SELECT email FROM profiles WHERE id = ?").bind(userId).first();
+                const targetUser = await env.DB.prepare("SELECT email, first_name FROM profiles WHERE id = ?").bind(userId).first();
                 const targetEmail = targetUser ? targetUser.email : userId;
+                const firstName = targetUser ? (targetUser.first_name || 'Valued User') : 'Valued User';
+
+                // Send Congratulatory Email to User on Trial Reset/Extension or Plan Upgrade
+                if (plan_type === 'trial' && trial_end && status === 'active') {
+                    const formattedExpiry = new Date(trial_end).toLocaleString();
+                    const trialEmailHtml = `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                            <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px;">Congratulations! Your Free Trial Has Been Extended! 🎉</h2>
+                            <p>Hi ${firstName},</p>
+                            <p>Great news! Your <strong>Apna Downloader Free Trial</strong> has been successfully renewed and extended by our support team.</p>
+                            <div style="background-color: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #bbf7d0;">
+                                <h4 style="margin: 0 0 10px 0; color: #166534;">Updated Trial Overview:</h4>
+                                <p style="margin: 5px 0;"><strong>Account Email:</strong> ${targetEmail}</p>
+                                <p style="margin: 5px 0;"><strong>Subscription Status:</strong> Active Trial</p>
+                                <p style="margin: 5px 0;"><strong>New Expiry Date & Time:</strong> ${formattedExpiry}</p>
+                                <p style="margin: 5px 0;"><strong>Allocated Device Slots:</strong> ${pc_slots} PC Slot(s)</p>
+                            </div>
+                            <p>You can now continue enjoying maximum multithreaded download speeds in your Apna Downloader desktop app.</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="https://apna-downloader.pages.dev/portal" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Go to Customer Portal</a>
+                            </div>
+                            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                            <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
+                        </div>
+                    `;
+                    ctx.waitUntil(sendEmail(targetEmail, "Congratulations! Your Free Trial Has Been Extended 🎉", trialEmailHtml, env));
+                } else if (plan_type !== 'trial' && status === 'active') {
+                    const planName = plan_type.toUpperCase();
+                    const upgradeEmailHtml = `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155;">
+                            <h2 style="color: #10b981; text-align: center; margin-bottom: 20px;">Congratulations! Your Plan Has Been Upgraded! 🎉</h2>
+                            <p>Hi ${firstName},</p>
+                            <p>Great news! Your account has been upgraded to the <strong>${planName} Premium License</strong>.</p>
+                            <div style="background-color: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #bbf7d0;">
+                                <h4 style="margin: 0 0 10px 0; color: #166534;">Updated Subscription Details:</h4>
+                                <p style="margin: 5px 0;"><strong>Account Email:</strong> ${targetEmail}</p>
+                                <p style="margin: 5px 0;"><strong>Plan Package:</strong> ${planName}</p>
+                                <p style="margin: 5px 0;"><strong>Allocated Device Slots:</strong> ${pc_slots} PC Slot(s)</p>
+                                <p style="margin: 5px 0;"><strong>Status:</strong> Active Premium</p>
+                            </div>
+                            <p>You now have full access to high-speed multithreaded downloading on your authorized devices.</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="https://apna-downloader.pages.dev/portal" style="background-color: #10b981; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Go to Customer Portal</a>
+                            </div>
+                            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                            <p style="font-size: 11px; color: #94a3b8; text-align: center;">Apna Downloader SaaS Platform &copy; 2026. All rights reserved.</p>
+                        </div>
+                    `;
+                    ctx.waitUntil(sendEmail(targetEmail, `Congratulations! Account Upgraded to ${planName} Premium 🎉`, upgradeEmailHtml, env));
+                }
+
                 const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
                 await logAdminActivity(env.DB, actorEmail, "USER_UPDATE", `Updated user ${targetEmail} (Plan: ${plan_type}, Slots: ${pc_slots}, Status: ${status}, Blacklist: ${is_blacklisted ? 1 : 0}, Discount: ${custom_discount || 0}%)`);
 

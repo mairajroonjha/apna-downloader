@@ -1576,12 +1576,55 @@ async function loadAdminSystemSettings() {
     }
 }
 
-async function handleSaveSystemSettings(e) {
+async function handleSaveTrialDays(e) {
     e.preventDefault();
-    const btn = document.getElementById("btn-save-sys-settings");
-    const toast = document.getElementById("sys-settings-toast");
-    
+    const btn = document.getElementById("btn-save-trial-days");
+    const toast = document.getElementById("trial-days-toast");
     const trialDays = document.getElementById("settings-trial-days").value;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
+    try {
+        const token = getAdminToken();
+        const res = await fetch(`${API_BASE}/api/admin/settings/update`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                trial_days: trialDays
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (toast) {
+                toast.style.display = "block";
+                toast.innerText = `Free Trial duration updated to ${trialDays} days successfully!`;
+                setTimeout(() => { toast.style.display = "none"; }, 4000);
+            } else {
+                alert(`Free Trial duration updated to ${trialDays} days successfully!`);
+            }
+        } else {
+            alert(data.error || "Failed to update trial duration.");
+        }
+    } catch(err) {
+        alert("Network error updating trial duration. Make sure backend is deployed.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Free Trial Duration';
+        }
+    }
+}
+
+async function handleSaveNotificationEmails(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btn-save-notification-emails");
+    const toast = document.getElementById("notification-emails-toast");
     const notificationEmails = document.getElementById("settings-notification-emails").value;
 
     if (btn) {
@@ -1598,7 +1641,6 @@ async function handleSaveSystemSettings(e) {
                 "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
-                trial_days: trialDays,
                 notification_emails: notificationEmails
             })
         });
@@ -1606,20 +1648,20 @@ async function handleSaveSystemSettings(e) {
         if (data.success) {
             if (toast) {
                 toast.style.display = "block";
-                toast.innerText = "System Preferences updated successfully!";
+                toast.innerText = "Notification email addresses updated successfully!";
                 setTimeout(() => { toast.style.display = "none"; }, 4000);
             } else {
-                alert("System Preferences updated successfully!");
+                alert("Notification email addresses updated successfully!");
             }
         } else {
-            alert(data.error || "Failed to update system settings.");
+            alert(data.error || "Failed to update notification emails.");
         }
     } catch(err) {
-        alert("Network error updating system settings.");
+        alert("Network error updating notification emails. Make sure backend is deployed.");
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save System & Notification Preferences';
+            btn.innerHTML = '<i class="fa-solid fa-envelope"></i> Save Notification Emails';
         }
     }
 }
@@ -1629,6 +1671,7 @@ window.loadActivities = loadActivities;
 window.loadReleases = loadReleases;
 window.handlePublishReleaseSubmit = handlePublishReleaseSubmit;
 window.loadAdminSystemSettings = loadAdminSystemSettings;
-window.handleSaveSystemSettings = handleSaveSystemSettings;
+window.handleSaveTrialDays = handleSaveTrialDays;
+window.handleSaveNotificationEmails = handleSaveNotificationEmails;
 window.addEventListener("DOMContentLoaded", init);
 

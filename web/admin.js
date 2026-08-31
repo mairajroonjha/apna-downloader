@@ -1557,7 +1557,7 @@ async function handlePublishReleaseSubmit(event) {
 }
 
 async function loadAdminSystemSettings() {
-    const token = getAdminToken();
+    const token = adminKey || localStorage.getItem("admin_key");
     try {
         const res = await fetch(`${BACKEND_URL}/api/admin/settings`, {
             headers: { "Authorization": `Bearer ${token}` }
@@ -1588,7 +1588,7 @@ async function handleSaveTrialDays(e) {
     }
 
     try {
-        const token = getAdminToken();
+        const token = adminKey || localStorage.getItem("admin_key");
         const res = await fetch(`${BACKEND_URL}/api/admin/settings/update`, {
             method: "POST",
             headers: {
@@ -1612,7 +1612,7 @@ async function handleSaveTrialDays(e) {
             alert(data.error || "Failed to update trial duration.");
         }
     } catch(err) {
-        alert("Network error updating trial duration. Make sure backend is deployed.");
+        alert("Network error updating trial duration: " + (err.message || err));
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -1633,7 +1633,7 @@ async function handleSaveNotificationEmails(e) {
     }
 
     try {
-        const token = getAdminToken();
+        const token = adminKey || localStorage.getItem("admin_key");
         const res = await fetch(`${BACKEND_URL}/api/admin/settings/update`, {
             method: "POST",
             headers: {
@@ -1657,7 +1657,7 @@ async function handleSaveNotificationEmails(e) {
             alert(data.error || "Failed to update notification emails.");
         }
     } catch(err) {
-        alert("Network error updating notification emails. Make sure backend is deployed.");
+        alert("Network error updating notification emails: " + (err.message || err));
     } finally {
         if (btn) {
             btn.disabled = false;

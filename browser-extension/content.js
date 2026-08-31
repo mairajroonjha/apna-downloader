@@ -9,7 +9,7 @@
 
     // Create the floating grab button and its dropdown menu
     function createGrabberElements() {
-        if (grabButton) return;
+        if (grabberDisabledOnPage || grabButton) return;
 
         // 1. Create split button layout
         grabButton = document.createElement('div');
@@ -78,8 +78,17 @@
 
         btnClose.addEventListener('click', (e) => {
             e.stopPropagation();
-            temporarilyIgnoredElement = activeMedia || activeFileUrl || null;
+            grabberDisabledOnPage = true;
+            hideDropdown();
             hideButton();
+            if (grabButton) {
+                grabButton.remove();
+                grabButton = null;
+            }
+            if (grabDropdown) {
+                grabDropdown.remove();
+                grabDropdown = null;
+            }
         });
 
         // Close dropdown when clicking anywhere else
@@ -501,6 +510,7 @@
 
     function attachListeners() {
         document.body.addEventListener('mousemove', (e) => {
+            if (grabberDisabledOnPage) return;
             const x = e.clientX;
             const y = e.clientY;
             

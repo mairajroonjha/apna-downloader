@@ -291,9 +291,32 @@ async function sendEmail(to, subject, htmlContent, env) {
     return false;
 }
 
-// Helper to send instant admin notifications to mirajroonjha@gmail.com
-function sendAdminNotification(env, ctx, subject, title, detailsHtml) {
-    const adminEmail = "mirajroonjha@gmail.com";
+// Helper to fetch or initialize system settings (trial days & notification emails)
+async function getSystemSettings(env) {
+    try {
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS system_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
+        const rows = await env.DB.prepare("SELECT key, value FROM system_settings").all();
+        const settings = { trial_days: "15", notification_emails: "mirajroonjha@gmail.com" };
+        if (rows && rows.results) {
+            rows.results.forEach(r => {
+                settings[r.key] = r.value;
+            });
+        }
+        return settings;
+    } catch(e) {
+        return { trial_days: "15", notification_emails: "mirajroonjha@gmail.com" };
+    }
+}
+
+// Helper to send instant admin notifications to all configured notification emails
+async function sendAdminNotification(env, ctx, subject, title, detailsHtml) {
+    const settings = await getSystemSettings(env);
+    const emailsStr = settings.notification_emails || "mirajroonjha@gmail.com";
+    const emailList = emailsStr.split(',').map(e => e.trim()).filter(e => e.length > 0 && e.includes('@'));
+    if (emailList.length === 0) {
+        emailList.push("mirajroonjha@gmail.com");
+    }
+
     const adminDashboardUrl = "https://apna-downloader.pages.dev/admin.html";
 
     const htmlContent = `
@@ -319,10 +342,12 @@ function sendAdminNotification(env, ctx, subject, title, detailsHtml) {
         </div>
     `;
 
-    if (ctx && ctx.waitUntil) {
-        ctx.waitUntil(sendEmail(adminEmail, `[Admin Alert] ${subject}`, htmlContent, env));
-    } else {
-        sendEmail(adminEmail, `[Admin Alert] ${subject}`, htmlContent, env);
+    for (const recipient of emailList) {
+        if (ctx && ctx.waitUntil) {
+            ctx.waitUntil(sendEmail(recipient, `[Admin Alert] ${subject}`, htmlContent, env));
+        } else {
+            sendEmail(recipient, `[Admin Alert] ${subject}`, htmlContent, env);
+        }
     }
 }
 
@@ -1006,8 +1031,11 @@ export default {
                     return new Response(JSON.stringify({ success: false, error: "You have already activated your free trial." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 }
 
+                const sysSettings = await getSystemSettings(env);
+                const trialDays = parseInt(sysSettings.trial_days || "15", 10) || 15;
+
                 const trialEndDate = new Date();
-                trialEndDate.setDate(trialEndDate.getDate() + 15);
+                trialEndDate.setDate(trialEndDate.getDate() + trialDays);
 
                 await env.DB.prepare("UPDATE subscriptions SET plan_type = 'trial', status = 'active', trial_end = ? WHERE user_id = ?")
                     .bind(trialEndDate.toISOString(), decoded.userId).run();
@@ -1511,6 +1539,49 @@ export default {
                 headers.set("Access-Control-Allow-Methods", "GET");
 
                 return new Response(object.body, { headers });
+            }
+
+            // GET ADMIN SYSTEM SETTINGS
+            if (path === "/api/admin/settings" && request.method === "GET") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const settings = await getSystemSettings(env);
+                return new Response(JSON.stringify({ success: true, settings }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+
+            // UPDATE ADMIN SYSTEM SETTINGS
+            if (path === "/api/admin/settings/update" && request.method === "POST") {
+                const authHeader = request.headers.get("Authorization");
+                const authorized = await isAdminAuthorized(authHeader, env.DB, JWT_SECRET, ADMIN_MASTER_KEY);
+                if (!authorized) {
+                    return new Response(JSON.stringify({ success: false, error: "Forbidden: Administrator access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const { trial_days, notification_emails } = await request.json();
+
+                await env.DB.prepare("CREATE TABLE IF NOT EXISTS system_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
+
+                if (trial_days !== undefined) {
+                    const daysVal = parseInt(trial_days, 10);
+                    if (isNaN(daysVal) || daysVal < 1) {
+                        return new Response(JSON.stringify({ success: false, error: "Trial days must be a positive integer" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                    }
+                    await env.DB.prepare("INSERT OR REPLACE INTO system_settings (key, value) VALUES ('trial_days', ?)").bind(daysVal.toString()).run();
+                }
+
+                if (notification_emails !== undefined) {
+                    await env.DB.prepare("INSERT OR REPLACE INTO system_settings (key, value) VALUES ('notification_emails', ?)").bind(notification_emails.trim()).run();
+                }
+
+                const actorEmail = await getAdminEmailFromHeader(authHeader, JWT_SECRET, ADMIN_MASTER_KEY);
+                await logAdminActivity(env.DB, actorEmail, "SETTINGS_UPDATE", `Updated system settings (Trial days: ${trial_days}, Emails: ${notification_emails})`);
+
+                const updatedSettings = await getSystemSettings(env);
+                return new Response(JSON.stringify({ success: true, message: "System settings updated successfully!", settings: updatedSettings }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
             // ==================== SUPPORT INBOX PATHS ====================

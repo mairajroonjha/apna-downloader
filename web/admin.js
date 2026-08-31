@@ -378,6 +378,7 @@ function switchAdminTab(tabName) {
     } else if (tabName === 'settings') {
         tabSettings?.classList.add("active");
         if (pageSettings) pageSettings.style.display = "block";
+        loadAdminSystemSettings();
     }
 }
 
@@ -412,11 +413,11 @@ function openUserModal(userId) {
         document.getElementById("edit-trial-end").value = "";
     }
     
-    editUserModal.style.display = "flex";
+    document.getElementById("edit-user-modal").style.display = "flex";
 }
 
 function closeUserModal() {
-    editUserModal.style.display = "none";
+    document.getElementById("edit-user-modal").style.display = "none";
 }
 
 function resetUserDevices() {
@@ -424,10 +425,13 @@ function resetUserDevices() {
 }
 
 function resetUserTrial() {
-    const choice = confirm("Press OK to directly grant a new 15-day trial now.\nPress CANCEL to reset their trial status to 'Not Started' so they can activate it themselves from their dashboard.");
+    const choice = confirm("Press OK to directly grant a new trial now.\nPress CANCEL to reset their trial status to 'Not Started' so they can activate it themselves from their dashboard.");
     if (choice) {
+        const daysInput = prompt("Enter trial duration in days (e.g. 10, 15, 30):", "15");
+        if (daysInput === null) return;
+        const days = parseInt(daysInput, 10) || 15;
         const future = new Date();
-        future.setDate(future.getDate() + 15);
+        future.setDate(future.getDate() + days);
         const yyyy = future.getFullYear();
         const mm = String(future.getMonth() + 1).padStart(2, '0');
         const dd = String(future.getDate()).padStart(2, '0');
@@ -1552,9 +1556,79 @@ async function handlePublishReleaseSubmit(event) {
     }
 }
 
+async function loadAdminSystemSettings() {
+    const token = getAdminToken();
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/settings`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.settings) {
+            if (document.getElementById("settings-trial-days")) {
+                document.getElementById("settings-trial-days").value = data.settings.trial_days || "15";
+            }
+            if (document.getElementById("settings-notification-emails")) {
+                document.getElementById("settings-notification-emails").value = data.settings.notification_emails || "mirajroonjha@gmail.com";
+            }
+        }
+    } catch(e) {
+        console.error("Failed to load system settings:", e);
+    }
+}
+
+async function handleSaveSystemSettings(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btn-save-sys-settings");
+    const toast = document.getElementById("sys-settings-toast");
+    
+    const trialDays = document.getElementById("settings-trial-days").value;
+    const notificationEmails = document.getElementById("settings-notification-emails").value;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
+    try {
+        const token = getAdminToken();
+        const res = await fetch(`${API_BASE}/api/admin/settings/update`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                trial_days: trialDays,
+                notification_emails: notificationEmails
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (toast) {
+                toast.style.display = "block";
+                toast.innerText = "System Preferences updated successfully!";
+                setTimeout(() => { toast.style.display = "none"; }, 4000);
+            } else {
+                alert("System Preferences updated successfully!");
+            }
+        } else {
+            alert(data.error || "Failed to update system settings.");
+        }
+    } catch(err) {
+        alert("Network error updating system settings.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save System & Notification Preferences';
+        }
+    }
+}
+
 window.loadAnalyticsCharts = loadAnalyticsCharts;
 window.loadActivities = loadActivities;
 window.loadReleases = loadReleases;
 window.handlePublishReleaseSubmit = handlePublishReleaseSubmit;
+window.loadAdminSystemSettings = loadAdminSystemSettings;
+window.handleSaveSystemSettings = handleSaveSystemSettings;
 window.addEventListener("DOMContentLoaded", init);
 

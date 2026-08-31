@@ -694,23 +694,50 @@
             </div>
 
             <!-- Page 6: Admin Settings & Password Change Tab -->
-            <div id="admin-page-settings" class="card-glass" style="padding: 25px 30px; display: none; max-width: 500px; margin: 0 auto;">
-                <h3 style="font-size: 16px; margin-bottom: 5px;"><i class="fa-solid fa-gear"></i> Admin Account Settings</h3>
-                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Change your administrator password securely. This will update the stored password in your database.</p>
-                
-                <div id="settings-success-toast" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); padding: 12px 18px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; display: none;"></div>
-                
-                <form id="admin-change-password-form" onsubmit="handleAdminChangePasswordSubmit(event)">
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">New Admin Password</label>
-                        <input type="password" id="settings-new-password" class="form-input" placeholder="Min 6 characters" required minlength="6">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Confirm New Password</label>
-                        <input type="password" id="settings-confirm-password" class="form-input" placeholder="Repeat new password" required minlength="6">
-                    </div>
-                    <button type="submit" class="btn-submit" style="width: 100%;"><i class="fa-solid fa-key"></i> Update Admin Password</button>
-                </form>
+            <div id="admin-page-settings" style="display: none; max-width: 900px; margin: 0 auto;">
+                <!-- Card 1: System Preferences & Notification Emails -->
+                <div class="card-glass" style="padding: 25px 30px; margin-bottom: 25px;">
+                    <h3 style="font-size: 16px; margin-bottom: 5px;"><i class="fa-solid fa-sliders"></i> System & Notification Preferences</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Configure default free trial length and set notification email addresses to receive instant user activity alerts.</p>
+                    
+                    <div id="sys-settings-toast" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); padding: 12px 18px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; display: none;"></div>
+                    
+                    <form id="admin-system-settings-form" onsubmit="handleSaveSystemSettings(event)">
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Default Free Trial (Days)</label>
+                                <input type="number" id="settings-trial-days" class="form-input" placeholder="e.g. 10, 15, 30" required min="1" max="365" value="15">
+                                <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">Set how many trial days new users receive when activating trial.</span>
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Notification Email Address(es)</label>
+                                <input type="text" id="settings-notification-emails" class="form-input" placeholder="mirajroonjha@gmail.com, admin2@example.com" required>
+                                <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">Separate multiple emails with commas to send alerts to all admins.</span>
+                            </div>
+                        </div>
+                        <button type="submit" id="btn-save-sys-settings" class="btn-submit" style="background: linear-gradient(135deg, var(--accent-color) 0%, #2563eb 100%);"><i class="fa-solid fa-floppy-disk"></i> Save System & Notification Preferences</button>
+                    </form>
+                </div>
+
+                <!-- Card 2: Admin Password Change -->
+                <div class="card-glass" style="padding: 25px 30px;">
+                    <h3 style="font-size: 16px; margin-bottom: 5px;"><i class="fa-solid fa-key"></i> Admin Account Password</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Change your administrator login password securely.</p>
+                    
+                    <div id="settings-success-toast" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); padding: 12px 18px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; display: none;"></div>
+                    
+                    <form id="admin-change-password-form" onsubmit="handleAdminChangePasswordSubmit(event)">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">New Admin Password</label>
+                            <input type="password" id="settings-new-password" class="form-input" placeholder="Min 6 characters" required minlength="6">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Confirm New Password</label>
+                            <input type="password" id="settings-confirm-password" class="form-input" placeholder="Repeat new password" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn-submit" style="width: 100%;"><i class="fa-solid fa-key"></i> Update Admin Password</button>
+                    </form>
+                </div>
             </div>
 
             </div>

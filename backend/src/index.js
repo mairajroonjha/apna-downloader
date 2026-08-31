@@ -230,52 +230,99 @@ function buildRedirectUrl(baseState, params) {
     return url.toString() + hash;
 }
 
-// Helper to send transactional emails via Brevo (formerly Sendinblue)
+// Helper to send transactional emails via Brevo or Resend
 async function sendEmail(to, subject, htmlContent, env) {
-    const apiKey = env.BREVO_API_KEY;
-    if (!apiKey) {
-        console.warn("[EMAIL] Skipping email delivery: BREVO_API_KEY is not configured.");
-        return false;
-    }
-    
     const recipient = to.toLowerCase().trim();
     const senderEmail = env.EMAIL_FROM_EMAIL || "mirajroonjha@gmail.com";
     const senderName = env.EMAIL_FROM_NAME || "Apna Downloader";
-    
-    try {
-        const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-            method: "POST",
-            headers: {
-                "api-key": apiKey,
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                sender: {
-                    name: senderName,
-                    email: senderEmail
+
+    // 1. Try Brevo API if key is present
+    if (env.BREVO_API_KEY) {
+        try {
+            const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+                method: "POST",
+                headers: {
+                    "api-key": env.BREVO_API_KEY,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
                 },
-                to: [
-                    {
-                        email: recipient
-                    }
-                ],
-                subject: subject,
-                htmlContent: htmlContent
-            })
-        });
-        
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error(`[EMAIL ERROR] Brevo returned status ${response.status}: ${errText}`);
-            return false;
+                body: JSON.stringify({
+                    sender: { name: senderName, email: senderEmail },
+                    to: [{ email: recipient }],
+                    subject: subject,
+                    htmlContent: htmlContent
+                })
+            });
+            if (response.ok) {
+                console.log(`[EMAIL SUCCESS] Sent via Brevo to ${recipient}`);
+                return true;
+            }
+        } catch (e) {
+            console.error("[EMAIL ERROR] Brevo failed:", e);
         }
-        
-        console.log(`[EMAIL SUCCESS] Email sent successfully via Brevo to ${recipient} (Subject: "${subject}")`);
-        return true;
-    } catch (e) {
-        console.error("[EMAIL ERROR] Failed to send email via Brevo:", e);
-        return false;
+    }
+
+    // 2. Try Resend API if key is present
+    if (env.RESEND_API_KEY) {
+        try {
+            const response = await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    from: "Apna Downloader <security@resend.dev>",
+                    to: recipient,
+                    subject: subject,
+                    html: htmlContent
+                })
+            });
+            if (response.ok) {
+                console.log(`[EMAIL SUCCESS] Sent via Resend to ${recipient}`);
+                return true;
+            }
+        } catch (e) {
+            console.error("[EMAIL ERROR] Resend failed:", e);
+        }
+    }
+
+    console.warn(`[EMAIL SKIPPED] No valid API keys or email delivery failed for ${recipient}`);
+    return false;
+}
+
+// Helper to send instant admin notifications to mirajroonjha@gmail.com
+function sendAdminNotification(env, ctx, subject, title, detailsHtml) {
+    const adminEmail = "mirajroonjha@gmail.com";
+    const adminDashboardUrl = "https://apna-downloader.pages.dev/admin.html";
+
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #334155;">
+            <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 24px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;">Apna Downloader Alert 🚀</h1>
+                <p style="color: #93c5fd; margin: 6px 0 0 0; font-size: 14px;">${title}</p>
+            </div>
+            
+            <div style="padding: 24px;">
+                <div style="background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 24px;">
+                    ${detailsHtml}
+                </div>
+                
+                <div style="text-align: center; margin-top: 24px;">
+                    <a href="${adminDashboardUrl}" target="_blank" style="background: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;">Open Admin Dashboard &rarr;</a>
+                </div>
+            </div>
+            
+            <div style="background: #090d16; padding: 16px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #1e293b;">
+                &copy; Apna Downloader SaaS Platform &bull; System Notification
+            </div>
+        </div>
+    `;
+
+    if (ctx && ctx.waitUntil) {
+        ctx.waitUntil(sendEmail(adminEmail, `[Admin Alert] ${subject}`, htmlContent, env));
+    } else {
+        sendEmail(adminEmail, `[Admin Alert] ${subject}`, htmlContent, env);
     }
 }
 
@@ -342,6 +389,16 @@ export default {
                     </div>
                 `;
                 ctx.waitUntil(sendEmail(email, "Welcome to Apna Downloader - Free Trial Active! 🚀", welcomeHtml, env));
+
+                sendAdminNotification(
+                    env, ctx,
+                    `New User Registered: ${first_name} ${last_name} (${email})`,
+                    `New Account Registration`,
+                    `<p style="margin: 6px 0; color: #cbd5e1;"><strong>User Name:</strong> ${first_name} ${last_name}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Registered Email:</strong> ${email}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Registration Date:</strong> ${new Date().toLocaleString()}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Initial Status:</strong> Approved (1 PC Slot)</p>`
+                );
 
                 return new Response(JSON.stringify({ success: true, message: "Registration completed successfully! You can now log in." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
@@ -955,6 +1012,21 @@ export default {
                 await env.DB.prepare("UPDATE subscriptions SET plan_type = 'trial', status = 'active', trial_end = ? WHERE user_id = ?")
                     .bind(trialEndDate.toISOString(), decoded.userId).run();
 
+                const profile = await env.DB.prepare("SELECT email, first_name, last_name FROM profiles WHERE id = ?").bind(decoded.userId).first();
+                const userName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'User';
+                const userEmail = profile ? profile.email : (decoded.email || 'N/A');
+
+                sendAdminNotification(
+                    env, ctx,
+                    `Free Trial Activated: ${userEmail}`,
+                    `15-Day Free Trial Activated`,
+                    `<p style="margin: 6px 0; color: #cbd5e1;"><strong>User Name:</strong> ${userName}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Email:</strong> ${userEmail}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Plan Activated:</strong> Free Trial (15 Days)</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>PC Slots:</strong> 1 Slot</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Trial Expiry Date:</strong> ${trialEndDate.toLocaleDateString()}</p>`
+                );
+
                 return new Response(JSON.stringify({ success: true, message: "Free trial activated successfully!" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
 
@@ -1234,6 +1306,21 @@ export default {
                     </div>
                 `;
                 ctx.waitUntil(sendEmail(decoded.email, "Payment Claim Received - Under Verification ⏱️", claimHtml, env));
+
+                const parts = (pricing_id || "").split('_');
+                const planTypeFormatted = (parts[0] || "custom").toUpperCase();
+                const pcSlotsFormatted = parts[1] || "1";
+
+                sendAdminNotification(
+                    env, ctx,
+                    `New Order Claim: ${planTypeFormatted} (${pcSlotsFormatted} Slots) - ${decoded.email}`,
+                    `New Subscription / Payment Claim Submitted`,
+                    `<p style="margin: 6px 0; color: #cbd5e1;"><strong>User Email:</strong> ${decoded.email}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Plan Package:</strong> ${planTypeFormatted}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>PC Slots Selected:</strong> ${pcSlotsFormatted} PC Slot(s)</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Amount Paid:</strong> PKR ${amount}</p>
+                     <p style="margin: 6px 0; color: #cbd5e1;"><strong>Transaction ID:</strong> ${transaction_id}</p>`
+                );
 
                 return new Response(JSON.stringify({ success: true, message: "Payment verification claim submitted successfully! Admin will review within 1-2 hours." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }

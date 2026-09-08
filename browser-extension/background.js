@@ -30,19 +30,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     return;
                 }
                 
-                if (url.startsWith('blob:') && tab && tab.id) {
-                    // Send message to content script to resolve the blob URL
-                    chrome.tabs.sendMessage(tab.id, { action: "resolveBlob", url: url }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            console.log('Error messaging tab to resolve blob:', chrome.runtime.lastError.message);
-                        }
-                        if (response && response.dataUrl) {
-                            const filename = getFilenameFromUrl(response.dataUrl) || 'download';
-                            sendToApna(response.dataUrl, filename, tab ? tab.url : null);
-                        } else {
-                            const filename = getFilenameFromUrl(url);
-                            sendToApna(url, filename, tab ? tab.url : null);
-                        }
+                if (url.startsWith('blob:')) {
+                    const fallbackName = getFilenameFromUrl(url) || 'download';
+                    resolveBlobUrl(url, tab ? tab.id : null, (resolvedUrl) => {
+                        sendToApna(resolvedUrl, fallbackName, tab ? tab.url : null);
                     });
                 } else {
                     const filename = getFilenameFromUrl(url);
@@ -93,12 +84,16 @@ chrome.downloads.onDeterminingFilename.addListener((item) => {
         'html', 'htm'
     ];
 
-    if (interceptableExtensions.includes(ext)) {
+    const isBlob = url.startsWith('blob:');
+    if (interceptableExtensions.includes(ext) || isBlob) {
         // Fetch exclude settings and check if domain should be ignored
         getSettingsFromNative((settings) => {
             const excluded = settings.excludedDomains || [];
             let downloadHost = '';
-            try { downloadHost = new URL(url).hostname; } catch(e) {}
+            try {
+                const cleanUrl = isBlob ? url.replace('blob:', '') : url;
+                downloadHost = new URL(cleanUrl).hostname;
+            } catch(e) {}
             let referrerHost = '';
             try { referrerHost = new URL(item.referrer || '').hostname; } catch(e) {}
             
@@ -120,11 +115,64 @@ chrome.downloads.onDeterminingFilename.addListener((item) => {
                 });
             });
 
-            // Send to Apna Downloader
-            sendToApna(url, filename, item.referrer);
+            if (isBlob) {
+                resolveBlobUrl(url, item.tabId, (resolvedUrl) => {
+                    sendToApna(resolvedUrl, filename, item.referrer);
+                });
+            } else {
+                sendToApna(url, filename, item.referrer);
+            }
         });
     }
 });
+
+function resolveBlobUrl(url, tabId, callback) {
+    if (tabId && tabId !== -1) {
+        chrome.tabs.sendMessage(tabId, { action: "resolveBlob", url: url }, (response) => {
+            if (chrome.runtime.lastError || !response || !response.dataUrl) {
+                tryResolveViaActiveTab(url, callback);
+            } else {
+                callback(response.dataUrl);
+            }
+        });
+    } else {
+        tryResolveViaActiveTab(url, callback);
+    }
+}
+
+function tryResolveViaActiveTab(url, callback) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs && tabs[0] && tabs[0].id) {
+            chrome.tabs.sendMessage(tabs[0].id, { action: "resolveBlob", url: url }, (response) => {
+                if (response && response.dataUrl) {
+                    callback(response.dataUrl);
+                } else {
+                    let host = '';
+                    try { host = new URL(url.replace('blob:', '')).hostname; } catch(e) {}
+                    if (host) {
+                        chrome.tabs.query({ url: `*://${host}/*` }, (domainTabs) => {
+                            if (domainTabs && domainTabs[0] && domainTabs[0].id) {
+                                chrome.tabs.sendMessage(domainTabs[0].id, { action: "resolveBlob", url: url }, (resp2) => {
+                                    if (resp2 && resp2.dataUrl) {
+                                        callback(resp2.dataUrl);
+                                    } else {
+                                        callback(url);
+                                    }
+                                });
+                            } else {
+                                callback(url);
+                            }
+                        });
+                    } else {
+                        callback(url);
+                    }
+                }
+            });
+        } else {
+            callback(url);
+        }
+    });
+}
 
 function sendToApna(url, filename, referer) {
     sendNativeMessage({

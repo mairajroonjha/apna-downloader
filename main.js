@@ -304,18 +304,47 @@ function detectCategory(filename) {
 }
 
 function getExtensionFromMimeType(mime) {
+    if (!mime) return '';
+    const cleanMime = mime.toLowerCase().trim();
     const map = {
+        'application/pdf': 'pdf',
+        'application/msword': 'doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+        'application/vnd.ms-excel': 'xls',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+        'application/vnd.ms-powerpoint': 'ppt',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+        'text/plain': 'txt',
+        'text/html': 'html',
+        'text/css': 'css',
+        'application/json': 'json',
+        'application/xml': 'xml',
+        'application/zip': 'zip',
+        'application/x-rar-compressed': 'rar',
+        'application/x-7z-compressed': '7z',
+        'application/x-tar': 'tar',
+        'application/gzip': 'gz',
         'image/png': 'png',
         'image/jpeg': 'jpg',
         'image/jpg': 'jpg',
         'image/gif': 'gif',
         'image/webp': 'webp',
         'image/svg+xml': 'svg',
-        'text/html': 'html',
-        'application/pdf': 'pdf',
-        'application/zip': 'zip'
+        'image/bmp': 'bmp',
+        'audio/mpeg': 'mp3',
+        'audio/mp3': 'mp3',
+        'audio/wav': 'wav',
+        'audio/aac': 'aac',
+        'audio/ogg': 'ogg',
+        'audio/flac': 'flac',
+        'audio/m4a': 'm4a',
+        'video/mp4': 'mp4',
+        'video/x-matroska': 'mkv',
+        'video/webm': 'webm',
+        'video/avi': 'avi',
+        'video/quicktime': 'mov'
     };
-    return map[mime.toLowerCase()] || '';
+    return map[cleanMime] || '';
 }
 
 // Load download history from database
@@ -1366,12 +1395,21 @@ ipcMain.handle('add-download', async (event, { url, savePath, numConnections, qu
     }
     const downloadId = Date.now().toString();
 
+    let initialSize = 0;
+    if (url.startsWith('data:')) {
+        const base64Idx = url.indexOf(';base64,');
+        if (base64Idx !== -1) {
+            const base64Str = url.substring(base64Idx + 8);
+            initialSize = Math.floor(base64Str.length * (3 / 4)) - (base64Str.endsWith('==') ? 2 : (base64Str.endsWith('=') ? 1 : 0));
+        }
+    }
+
     const newDownload = {
         id: downloadId,
         url: url,
         savePath: finalSavePath,
         filename: filename,
-        totalSize: 0,
+        totalSize: initialSize,
         downloaded: 0,
         status: 'idle',
         speed: 0,
@@ -1785,6 +1823,20 @@ ipcMain.handle('fetch-playlist-metadata', async (event, url) => {
 async function fetchMediaSizeHelper(url, quality, depth = 0) {
     if (depth > 5) return { success: false };
     
+    if (url.startsWith('data:')) {
+        let size = 0;
+        const base64Idx = url.indexOf(';base64,');
+        if (base64Idx !== -1) {
+            const base64Str = url.substring(base64Idx + 8);
+            size = Math.floor(base64Str.length * (3 / 4)) - (base64Str.endsWith('==') ? 2 : (base64Str.endsWith('=') ? 1 : 0));
+        }
+        return { success: true, size: size, title: 'download' };
+    }
+
+    if (url.startsWith('blob:')) {
+        return { success: false, title: 'Blob Download (Browser Resolution Required)' };
+    }
+
     if (!isStreamUrl(url)) {
         return new Promise((resolve) => {
             try {

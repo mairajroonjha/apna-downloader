@@ -6,6 +6,7 @@
     const grabReferer = params.get('referer') || '';
     const grabUserAgent = params.get('userAgent') || '';
     const grabEngine = params.get('engine') || '';
+    const grabCookies = params.get('cookies') || '';
 
     // Elements
     const inputUrl = document.getElementById('input-url');
@@ -205,7 +206,8 @@
                 grabUserAgent,
                 grabEngine,
                 false, // silent
-                sub
+                sub,
+                grabCookies
             );
             
             window.close();
@@ -253,7 +255,7 @@
         updateSidePanel(selectCategory.value, currentSizeText);
         
         try {
-            const res = await window.api.fetchMediaSize(url, grabQuality);
+            const res = await window.api.fetchMediaSize(url, grabQuality, { cookies: grabCookies, referer: grabReferer, userAgent: grabUserAgent });
             if (res && res.success && res.size > 0) {
                 currentSizeText = formatBytes(res.size);
                 updateSidePanel(selectCategory.value, currentSizeText);

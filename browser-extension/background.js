@@ -174,22 +174,60 @@ function tryResolveViaActiveTab(url, callback) {
     });
 }
 
+function getCookiesForUrl(url, callback) {
+    if (!chrome.cookies || !url || url.startsWith('data:')) {
+        callback('');
+        return;
+    }
+    const cleanUrl = url.startsWith('blob:') ? url.replace('blob:', '') : url;
+    try {
+        chrome.cookies.getAll({ url: cleanUrl }, (cookies) => {
+            if (!chrome.runtime.lastError && cookies && cookies.length > 0) {
+                const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+                callback(cookieHeader);
+            } else {
+                let domain = '';
+                try { domain = new URL(cleanUrl).hostname; } catch(e) {}
+                if (domain) {
+                    const parts = domain.split('.');
+                    const parentDomain = parts.length > 2 ? parts.slice(-2).join('.') : domain;
+                    chrome.cookies.getAll({ domain: parentDomain }, (domainCookies) => {
+                        if (!chrome.runtime.lastError && domainCookies && domainCookies.length > 0) {
+                            const cookieHeader = domainCookies.map(c => `${c.name}=${c.value}`).join('; ');
+                            callback(cookieHeader);
+                        } else {
+                            callback('');
+                        }
+                    });
+                } else {
+                    callback('');
+                }
+            }
+        });
+    } catch(e) {
+        callback('');
+    }
+}
+
 function sendToApna(url, filename, referer) {
-    sendNativeMessage({
-        action: 'grab',
-        payload: {
-            url: url,
-            filename: filename,
-            referer: referer || null,
-            userAgent: navigator.userAgent,
-            engine: 'basic'
-        }
-    }, (response) => {
-        if (response && response.status === 'ok') {
-            console.log('[Apna Helper] Link successfully grabbed via Native Messaging:', response);
-        } else {
-            console.error('[Apna Helper] Native Messaging grab failed:', response ? response.error : 'unknown error');
-        }
+    getCookiesForUrl(url, (cookiesStr) => {
+        sendNativeMessage({
+            action: 'grab',
+            payload: {
+                url: url,
+                filename: filename,
+                referer: referer || null,
+                userAgent: navigator.userAgent,
+                cookies: cookiesStr || null,
+                engine: 'basic'
+            }
+        }, (response) => {
+            if (response && response.status === 'ok') {
+                console.log('[Apna Helper] Link successfully grabbed via Native Messaging:', response);
+            } else {
+                console.error('[Apna Helper] Native Messaging grab failed:', response ? response.error : 'unknown error');
+            }
+        });
     });
 }
 

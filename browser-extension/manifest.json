@@ -12,7 +12,12 @@
   "permissions": [
     "contextMenus",
     "downloads",
-    "nativeMessaging"
+    "nativeMessaging",
+    "cookies"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "background.js"

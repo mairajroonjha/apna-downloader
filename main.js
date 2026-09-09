@@ -523,10 +523,10 @@ function createTray() {
 let infoWindow = null;
 
 // Create standalone Download File Info popup window
-function createInfoWindow(url = '', filename = '', quality = '', referer = '', userAgent = '', engine = '') {
+function createInfoWindow(url = '', filename = '', quality = '', referer = '', userAgent = '', engine = '', cookies = '') {
     if (infoWindow) {
         infoWindow.focus();
-        infoWindow.webContents.send('update-info', { url, filename, quality, referer, userAgent, engine });
+        infoWindow.webContents.send('update-info', { url, filename, quality, referer, userAgent, engine, cookies });
         return;
     }
 
@@ -546,7 +546,7 @@ function createInfoWindow(url = '', filename = '', quality = '', referer = '', u
         autoHideMenuBar: true
     });
 
-    const query = { url, filename, quality, referer, userAgent, engine };
+    const query = { url, filename, quality, referer, userAgent, engine, cookies };
     infoWindow.loadFile(path.join(__dirname, 'src', 'info.html'), { query });
 
     // Focus Bypass: briefly set always on top to force on screen foreground
@@ -669,9 +669,9 @@ function handleIpcRequest(request, socket) {
         socket.end();
     } else if (request.action === 'grab') {
         const payload = request.payload || request;
-        const { url, filename, quality, referer, userAgent, engine } = payload;
+        const { url, filename, quality, referer, userAgent, engine, cookies } = payload;
         if (url) {
-            createInfoWindow(url, filename, quality, referer, userAgent, engine);
+            createInfoWindow(url, filename, quality, referer, userAgent, engine, cookies);
             socket.write(JSON.stringify({ status: 'ok' }));
         } else {
             socket.write(JSON.stringify({ error: 'URL missing' }));
@@ -1369,7 +1369,7 @@ ipcMain.handle('get-downloads', () => {
 });
 
 // 3. Add Download
-ipcMain.handle('add-download', async (event, { url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles }) => {
+ipcMain.handle('add-download', async (event, { url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles, cookies }) => {
     let finalSavePath = savePath;
     if (url.startsWith('data:')) {
         const matches = url.match(/^data:([^;]+);/);
@@ -1418,6 +1418,7 @@ ipcMain.handle('add-download', async (event, { url, savePath, numConnections, qu
         quality: quality || null,
         referer: referer || null,
         userAgent: userAgent || null,
+        cookies: cookies || null,
         engine: engine || null,
         category: detectCategory(filename),
         dateAdded: new Date().toISOString(),
@@ -1433,7 +1434,7 @@ ipcMain.handle('add-download', async (event, { url, savePath, numConnections, qu
 
     // Fetch size asynchronously in the background
     if (!url.startsWith('data:')) {
-        fetchMediaSizeHelper(url, quality).then(res => {
+        fetchMediaSizeHelper(url, quality, 0, { cookies, referer, userAgent }).then(res => {
             if (res && res.success && res.size > 0) {
                 const item = downloads.find(d => d.id === downloadId);
                 if (item) {
@@ -1820,7 +1821,7 @@ ipcMain.handle('fetch-playlist-metadata', async (event, url) => {
 });
 
 // 15. Fetch Media Size
-async function fetchMediaSizeHelper(url, quality, depth = 0) {
+async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
     if (depth > 5) return { success: false };
     
     if (url.startsWith('data:')) {
@@ -1844,23 +1845,36 @@ async function fetchMediaSizeHelper(url, quality, depth = 0) {
                 const isHttps = parsedUrl.protocol === 'https:';
                 const httpLib = isHttps ? require('https') : require('http');
                 
-                const req = httpLib.request(url, {
-                    method: 'HEAD',
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                    }
-                }, async (res) => {
+                const headers = {
+                    'User-Agent': options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                };
+                if (options.referer) {
+                    headers['Referer'] = options.referer;
+                }
+                if (options.cookies) {
+                    headers['Cookie'] = options.cookies;
+                }
+
+                const doRequest = (method, reqHeaders, callback) => {
+                    const req = httpLib.request(url, { method, headers: reqHeaders }, callback);
+                    req.on('error', () => resolve({ success: false }));
+                    req.setTimeout(6000, () => { req.destroy(); resolve({ success: false }); });
+                    req.end();
+                };
+
+                // Try HEAD request first
+                doRequest('HEAD', headers, async (res) => {
                     if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
                         let redirectUrl = res.headers.location;
                         if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
                             redirectUrl = new URL(redirectUrl, url).href;
                         }
-                        resolve(await fetchMediaSizeHelper(redirectUrl, quality, depth + 1));
+                        resolve(await fetchMediaSizeHelper(redirectUrl, quality, depth + 1, options));
                         return;
                     }
-                    
-                    const contentLength = res.headers['content-length'];
-                    const size = contentLength ? parseInt(contentLength, 10) : 0;
+
+                    let contentLength = res.headers['content-length'];
+                    let size = contentLength ? parseInt(contentLength, 10) : 0;
                     
                     let filename = path.basename(parsedUrl.pathname);
                     const disposition = res.headers['content-disposition'];
@@ -1870,23 +1884,53 @@ async function fetchMediaSizeHelper(url, quality, depth = 0) {
                             filename = match[1];
                         }
                     }
+
+                    // Fallback to GET Range bytes=0-1 if size is unknown or status is 405/403
+                    if (!size || res.statusCode === 405 || res.statusCode === 403 || (res.headers['content-type'] && res.headers['content-type'].includes('text/html'))) {
+                        const rangeHeaders = { ...headers, 'Range': 'bytes=0-1' };
+                        doRequest('GET', rangeHeaders, async (getRes) => {
+                            if (getRes.statusCode >= 300 && getRes.statusCode < 400 && getRes.headers.location) {
+                                let redirectUrl = getRes.headers.location;
+                                if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
+                                    redirectUrl = new URL(redirectUrl, url).href;
+                                }
+                                resolve(await fetchMediaSizeHelper(redirectUrl, quality, depth + 1, options));
+                                return;
+                            }
+
+                            const contentRange = getRes.headers['content-range'];
+                            if (contentRange) {
+                                const match = contentRange.match(/\/(\d+)$/);
+                                if (match) {
+                                    size = parseInt(match[1], 10);
+                                }
+                            }
+                            if (!size && getRes.headers['content-length']) {
+                                size = parseInt(getRes.headers['content-length'], 10);
+                            }
+
+                            const getDisposition = getRes.headers['content-disposition'];
+                            if (getDisposition && getDisposition.includes('filename=')) {
+                                const match = getDisposition.match(/filename=["']?([^"';]+)/);
+                                if (match && match[1]) {
+                                    filename = match[1];
+                                }
+                            }
+
+                            if (!filename || filename === '/' || filename === '.') {
+                                filename = 'download';
+                            }
+                            resolve({ success: true, size: size || 0, title: filename });
+                        });
+                        return;
+                    }
+
                     if (!filename || filename === '/' || filename === '.') {
                         filename = 'download';
                     }
                     
                     resolve({ success: true, size, title: filename });
                 });
-                
-                req.on('error', () => {
-                    resolve({ success: false });
-                });
-                
-                req.setTimeout(5000, () => {
-                    req.destroy();
-                    resolve({ success: false });
-                });
-                
-                req.end();
             } catch (e) {
                 resolve({ success: false });
             }
@@ -1992,8 +2036,9 @@ async function fetchMediaSizeHelper(url, quality, depth = 0) {
     });
 }
 
-ipcMain.handle('fetch-media-size', async (event, { url, quality }) => {
-    return await fetchMediaSizeHelper(url, quality);
+ipcMain.handle('fetch-media-size', async (event, payload) => {
+    const { url, quality, cookies, referer, userAgent } = payload || {};
+    return await fetchMediaSizeHelper(url, quality, 0, { cookies, referer, userAgent });
 });
 
 
@@ -2118,7 +2163,8 @@ async function startDownload(download, isResume = false) {
         engine = new DownloadEngine(download.url, download.savePath, {
             numConnections: connections,
             referer: download.referer,
-            userAgent: download.userAgent
+            userAgent: download.userAgent,
+            cookies: download.cookies
         });
     }
 

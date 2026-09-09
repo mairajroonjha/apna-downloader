@@ -17,6 +17,7 @@ class DownloadEngine extends EventEmitter {
         this.numConnections = options.numConnections || 8;
         this.referer = options.referer || null;
         this.userAgent = options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
+        this.cookies = options.cookies || null;
         this.status = 'idle'; // idle, connecting, downloading, paused, completed, failed
         this.totalSize = 0;
         this.supportsRanges = false;
@@ -113,6 +114,9 @@ class DownloadEngine extends EventEmitter {
         };
         if (this.referer) {
             headers['Referer'] = this.referer;
+        }
+        if (this.cookies) {
+            headers['Cookie'] = this.cookies;
         }
 
         let useRange = true;
@@ -369,6 +373,9 @@ class DownloadEngine extends EventEmitter {
         };
         if (this.referer) {
             headers['Referer'] = this.referer;
+        }
+        if (this.cookies) {
+            headers['Cookie'] = this.cookies;
         }
 
         // Use Range header if supported and size is known

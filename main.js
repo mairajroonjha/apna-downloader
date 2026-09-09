@@ -1825,9 +1825,22 @@ ipcMain.handle('fetch-playlist-metadata', async (event, url) => {
     });
 });
 
+function normalizeDriveUrl(u) {
+    try {
+        const parsed = new URL(u);
+        if (parsed.hostname.includes('drive.google.com')) {
+            const match = parsed.pathname.match(/\/file\/d\/([^\/]+)/);
+            if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+            const id = parsed.searchParams.get('id');
+            if (id && !parsed.searchParams.has('export')) return 'https://drive.google.com/uc?export=download&id=' + id;
+        }
+    } catch(e){}
+    return u;
+}
+
 // 15. Fetch Media Size
 async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
-    if (depth > 5) return { success: false };
+    if (depth > 8) return { success: false };
     
     if (url.startsWith('data:')) {
         let size = 0;
@@ -1843,104 +1856,124 @@ async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
         return { success: false, title: 'Blob Download (Browser Resolution Required)' };
     }
 
-    if (!isStreamUrl(url)) {
+    if (isStreamUrl(url)) {
+        const dummy = new YtDlpDownloader(url, 'dummy-path');
         return new Promise((resolve) => {
-            try {
-                const parsedUrl = new URL(url);
-                const isHttps = parsedUrl.protocol === 'https:';
-                const httpLib = isHttps ? require('https') : require('http');
-                
-                const headers = {
-                    'User-Agent': options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                };
-                if (options.referer) {
-                    headers['Referer'] = options.referer;
+            dummy.getInfo(url).then(info => {
+                if (info && info.filesize) {
+                    resolve({ success: true, size: info.filesize, title: info.title || 'video' });
+                } else if (info && info.filesize_approx) {
+                    resolve({ success: true, size: info.filesize_approx, title: info.title || 'video' });
+                } else {
+                    resolve({ success: true, size: 0, title: info ? info.title : 'video' });
                 }
-                if (options.cookies) {
-                    headers['Cookie'] = options.cookies;
-                }
-
-                const doRequest = (method, reqHeaders, callback) => {
-                    const req = httpLib.request(url, { method, headers: reqHeaders }, callback);
-                    req.on('error', () => resolve({ success: false }));
-                    req.setTimeout(6000, () => { req.destroy(); resolve({ success: false }); });
-                    req.end();
-                };
-
-                // Try HEAD request first
-                doRequest('HEAD', headers, async (res) => {
-                    if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                        let redirectUrl = res.headers.location;
-                        if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
-                            redirectUrl = new URL(redirectUrl, url).href;
-                        }
-                        resolve(await fetchMediaSizeHelper(redirectUrl, quality, depth + 1, options));
-                        return;
-                    }
-
-                    let contentLength = res.headers['content-length'];
-                    let size = contentLength ? parseInt(contentLength, 10) : 0;
-                    
-                    let filename = path.basename(parsedUrl.pathname);
-                    const disposition = res.headers['content-disposition'];
-                    if (disposition && disposition.includes('filename=')) {
-                        const match = disposition.match(/filename=["']?([^"';]+)/);
-                        if (match && match[1]) {
-                            filename = match[1];
-                        }
-                    }
-
-                    // Fallback to GET Range bytes=0-1 if size is unknown or status is 405/403
-                    if (!size || res.statusCode === 405 || res.statusCode === 403 || (res.headers['content-type'] && res.headers['content-type'].includes('text/html'))) {
-                        const rangeHeaders = { ...headers, 'Range': 'bytes=0-1' };
-                        doRequest('GET', rangeHeaders, async (getRes) => {
-                            if (getRes.statusCode >= 300 && getRes.statusCode < 400 && getRes.headers.location) {
-                                let redirectUrl = getRes.headers.location;
-                                if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
-                                    redirectUrl = new URL(redirectUrl, url).href;
-                                }
-                                resolve(await fetchMediaSizeHelper(redirectUrl, quality, depth + 1, options));
-                                return;
-                            }
-
-                            const contentRange = getRes.headers['content-range'];
-                            if (contentRange) {
-                                const match = contentRange.match(/\/(\d+)$/);
-                                if (match) {
-                                    size = parseInt(match[1], 10);
-                                }
-                            }
-                            if (!size && getRes.headers['content-length']) {
-                                size = parseInt(getRes.headers['content-length'], 10);
-                            }
-
-                            const getDisposition = getRes.headers['content-disposition'];
-                            if (getDisposition && getDisposition.includes('filename=')) {
-                                const match = getDisposition.match(/filename=["']?([^"';]+)/);
-                                if (match && match[1]) {
-                                    filename = match[1];
-                                }
-                            }
-
-                            if (!filename || filename === '/' || filename === '.') {
-                                filename = 'download';
-                            }
-                            resolve({ success: true, size: size || 0, title: filename });
-                        });
-                        return;
-                    }
-
-                    if (!filename || filename === '/' || filename === '.') {
-                        filename = 'download';
-                    }
-                    
-                    resolve({ success: true, size, title: filename });
-                });
-            } catch (e) {
+            }).catch(() => {
                 resolve({ success: false });
-            }
+            });
         });
     }
+
+    url = normalizeDriveUrl(url);
+
+    return new Promise((resolve) => {
+        try {
+            const parsedUrl = new URL(url);
+            const isHttps = parsedUrl.protocol === 'https:';
+            const httpLib = isHttps ? require('https') : require('http');
+            
+            const headers = {
+                'User-Agent': options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Encoding': 'identity'
+            };
+            if (options.referer || parsedUrl.hostname.includes('google.com')) {
+                headers['Referer'] = options.referer || 'https://drive.google.com/';
+            }
+            if (options.cookies) {
+                headers['Cookie'] = options.cookies;
+            }
+
+            const req = httpLib.get(url, { headers }, (res) => {
+                let updatedCookies = options.cookies || '';
+                const setCookies = res.headers['set-cookie'];
+                if (setCookies && Array.isArray(setCookies)) {
+                    const parsedCookies = setCookies.map(c => c.split(';')[0]).join('; ');
+                    updatedCookies = updatedCookies ? `${updatedCookies}; ${parsedCookies}` : parsedCookies;
+                }
+
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    res.destroy();
+                    let redirectUrl = res.headers.location;
+                    if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
+                        redirectUrl = new URL(redirectUrl, url).href;
+                    }
+                    resolve(fetchMediaSizeHelper(redirectUrl, quality, depth + 1, { ...options, cookies: updatedCookies, referer: url }));
+                    return;
+                }
+
+                const contentType = res.headers['content-type'] || '';
+                if (res.statusCode === 200 && contentType.includes('text/html')) {
+                    let htmlData = '';
+                    res.on('data', (chunk) => {
+                        htmlData += chunk.toString('utf8');
+                        if (htmlData.length > 50000) res.destroy();
+                    });
+                    res.on('end', () => {
+                        const confirmMatch = htmlData.match(/href=["'](\/uc\?export=download[^"']+)["']/i) ||
+                                             htmlData.match(/action=["'](https:\/\/drive\.usercontent\.google\.com\/download[^"']+)["']/i) ||
+                                             htmlData.match(/href=["'](https:\/\/[^"']*confirm=[^"']+)["']/i);
+                        if (confirmMatch && confirmMatch[1]) {
+                            let confirmUrl = confirmMatch[1].replace(/&amp;/g, '&');
+                            if (!confirmUrl.startsWith('http')) {
+                                confirmUrl = new URL(confirmUrl, url).href;
+                            }
+                            resolve(fetchMediaSizeHelper(confirmUrl, quality, depth + 1, { ...options, cookies: updatedCookies, referer: url }));
+                            return;
+                        }
+
+                        let title = 'download';
+                        const titleMatch = htmlData.match(/<title>(.*?)<\/title>/i);
+                        if (titleMatch && titleMatch[1]) {
+                            title = titleMatch[1].trim();
+                        }
+                        resolve({ success: true, size: 0, title });
+                    });
+                    res.on('error', () => resolve({ success: false }));
+                    return;
+                }
+
+                let contentLength = res.headers['content-length'];
+                let size = contentLength ? parseInt(contentLength, 10) : 0;
+                
+                let filename = path.basename(parsedUrl.pathname);
+                const disposition = res.headers['content-disposition'];
+                if (disposition) {
+                    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+                    if (utf8Match && utf8Match[1]) {
+                        filename = decodeURIComponent(utf8Match[1]);
+                    } else {
+                        const standardMatch = disposition.match(/filename=["']?([^"';]+)/i);
+                        if (standardMatch && standardMatch[1]) {
+                            filename = standardMatch[1];
+                        }
+                    }
+                }
+
+                res.destroy();
+                if (!filename || filename === '/' || filename === '.') {
+                    filename = 'download';
+                }
+                
+                resolve({ success: true, size: size || 0, title: filename });
+            });
+
+            req.on('error', () => resolve({ success: false }));
+            req.setTimeout(8000, () => { req.destroy(); resolve({ success: false }); });
+        } catch (e) {
+            resolve({ success: false });
+        }
+    });
+}
 
     const dummy = new YtDlpDownloader(url, 'dummy-path');
     await dummy.ensureBinary();

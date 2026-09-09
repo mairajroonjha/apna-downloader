@@ -261,16 +261,32 @@
                 updateSidePanel(selectCategory.value, currentSizeText);
                 
                 // If title was fetched, update save path filename
-                if (res.title) {
-                    const ext = grabQuality === 'audio' ? 'mp3' : 'mp4';
-                    const newCleanName = sanitizeFilename(res.title) + '.' + ext;
-                    
-                    const savePathVal = inputSavePath.value;
-                    const lastSlash = Math.max(savePathVal.lastIndexOf('\\'), savePathVal.lastIndexOf('/'));
-                    const dir = lastSlash > -1 ? savePathVal.substring(0, lastSlash) : '';
-                    
-                    cleanFilename = newCleanName;
-                    inputSavePath.value = dir ? `${dir}\\${newCleanName}` : newCleanName;
+                if (res.title && res.title !== 'download' && !res.title.startsWith('Error')) {
+                    let newCleanName = '';
+                    if (isStream) {
+                        const ext = grabQuality === 'audio' ? 'mp3' : 'mp4';
+                        newCleanName = sanitizeFilename(res.title) + '.' + ext;
+                    } else {
+                        const fetchedExt = getFileExtension(res.title);
+                        if (fetchedExt) {
+                            newCleanName = sanitizeFilename(res.title);
+                        } else {
+                            const currentExt = getFileExtension(cleanFilename);
+                            newCleanName = sanitizeFilename(res.title) + (currentExt ? '.' + currentExt : '');
+                        }
+                    }
+
+                    if (newCleanName) {
+                        cleanFilename = newCleanName;
+                        const newCat = detectCategory(cleanFilename);
+                        selectCategory.value = newCat;
+                        updateCategoryUI(newCat);
+
+                        const savePathVal = inputSavePath.value;
+                        const lastSlash = Math.max(savePathVal.lastIndexOf('\\'), savePathVal.lastIndexOf('/'));
+                        const dir = lastSlash > -1 ? savePathVal.substring(0, lastSlash) : (defaultCategoryPaths[newCat] || '');
+                        inputSavePath.value = dir ? `${dir}\\${cleanFilename}` : cleanFilename;
+                    }
                 }
             } else {
                 currentSizeText = isStream ? "Streaming" : "Unknown";

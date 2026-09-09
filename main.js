@@ -911,20 +911,25 @@ function handleMessage(msg) {
             path: escapedBatPath,
             type: "stdio",
             allowed_origins: [
+                "chrome-extension://knogjncfngpiihpipgfkaijjekhjfepd/",
                 "chrome-extension://aaechcbgjhghnncgdhkjlddpjglfihmp/"
             ]
         };
+        fs.mkdirSync(userDataPath, { recursive: true });
         fs.writeFileSync(manifestPath, JSON.stringify(manifestContent, null, 4), 'utf8');
 
-        // 4. Register in registry
-        const registryKey = 'HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\com.apnadownloader.app';
+        // 4. Register in registry for Chrome & Edge
         const { exec } = require('child_process');
-        exec(`reg add "${registryKey}" /ve /t REG_SZ /d "${manifestPath}" /f`, (err) => {
-            if (err) {
-                console.error('[Native Messaging] Failed to register registry key:', err);
-            } else {
-                console.log('[Native Messaging] Successfully registered native messaging host in registry.');
-            }
+        const chromeRegKey = 'HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\com.apnadownloader.app';
+        const edgeRegKey = 'HKCU\\Software\\Microsoft\\Edge\\NativeMessagingHosts\\com.apnadownloader.app';
+        
+        exec(`reg add "${chromeRegKey}" /ve /t REG_SZ /d "${manifestPath}" /f`, (err) => {
+            if (err) console.error('[Native Messaging] Failed Chrome reg add:', err);
+            else console.log('[Native Messaging] Registered Chrome native host.');
+        });
+        exec(`reg add "${edgeRegKey}" /ve /t REG_SZ /d "${manifestPath}" /f`, (err) => {
+            if (err) console.error('[Native Messaging] Failed Edge reg add:', err);
+            else console.log('[Native Messaging] Registered Edge native host.');
         });
 
     } catch (e) {

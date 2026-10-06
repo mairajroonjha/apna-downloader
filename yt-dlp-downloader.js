@@ -25,7 +25,13 @@ class YtDlpDownloader extends EventEmitter {
         const resourcesBin = process.resourcesPath ? path.join(process.resourcesPath, 'bin') : localDir;
 
         // 3. Resolve user data directory bin folder (always writable)
-        const userDir = path.join(app.getPath('userData'), 'bin');
+        let userDir = localDir;
+        try {
+            const { app } = require('electron');
+            if (app && typeof app.getPath === 'function') {
+                userDir = path.join(app.getPath('userData'), 'bin');
+            }
+        } catch (e) {}
 
         // If binaries exist in localDir or resourcesBin, use that.
         // Otherwise, fallback to writable user directory.

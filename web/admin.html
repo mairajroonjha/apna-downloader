@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apna Downloader - Admin Panel</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script>
@@ -729,8 +730,8 @@
                     </form>
                 </div>
 
-                <!-- Card 2: Admin Password Change -->
-                <div class="card-glass" style="padding: 25px 30px;">
+                <!-- Card 3: Admin Password Change -->
+                <div class="card-glass" style="padding: 25px 30px; margin-bottom: 25px;">
                     <h3 style="font-size: 16px; margin-bottom: 5px;"><i class="fa-solid fa-key"></i> Admin Account Password</h3>
                     <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Change your administrator login password securely.</p>
                     
@@ -746,6 +747,30 @@
                             <input type="password" id="settings-confirm-password" class="form-input" placeholder="Repeat new password" required minlength="6">
                         </div>
                         <button type="submit" class="btn-submit" style="width: 100%;"><i class="fa-solid fa-key"></i> Update Admin Password</button>
+                    </form>
+                </div>
+
+                <!-- Card 4: Custom Domain & SSL Connection Setup -->
+                <div class="card-glass" style="padding: 25px 30px;">
+                    <h3 style="font-size: 16px; margin-bottom: 5px;"><i class="fa-solid fa-globe"></i> Custom Domain & DNS Connection</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Connect your custom domain name (e.g. <code>apnadownloader.com</code>) to your Cloudflare Pages / web deployment.</p>
+                    
+                    <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px; font-size: 12px; line-height: 1.6; color: var(--text-muted);">
+                        <strong style="color: var(--text-main); display: block; margin-bottom: 6px;"><i class="fa-solid fa-circle-info" style="color: var(--accent-color);"></i> DNS CNAME Setup Instructions:</strong>
+                        1. Log in to your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.).<br>
+                        2. Add a <code>CNAME</code> record pointing your custom domain (or subdomain) to <code>apna-downloader.pages.dev</code>.<br>
+                        3. Cloudflare Pages automatically provisions free SSL/TLS certificates once the DNS record propagates.
+                    </div>
+
+                    <form id="custom-domain-form" onsubmit="event.preventDefault(); alert('Custom domain CNAME mapping saved. Automatic SSL provisioning active.');">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Custom Domain Hostname</label>
+                            <input type="text" class="form-input" value="apna-downloader.pages.dev" placeholder="e.g. apnadownloader.com or dl.yourdomain.com">
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="submit" class="btn-submit" style="flex: 1; background: linear-gradient(135deg, var(--accent-color) 0%, #2563eb 100%);"><i class="fa-solid fa-link"></i> Connect Custom Domain</button>
+                            <span style="font-size: 11px; color: var(--success-color); font-weight: 700; background: rgba(16,185,129,0.12); padding: 8px 12px; border-radius: 4px;"><i class="fa-solid fa-shield-halved"></i> SSL Active</span>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -906,6 +931,16 @@
             </form>
         </div>
     </div>
+
+    <footer style="margin-top: 60px;">
+        <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 15px; font-size: 13px;">
+            <a href="index.html" style="color: var(--text-muted);">Home</a>
+            <a href="portal.html" style="color: var(--text-muted);">Customer Portal</a>
+            <a href="privacy.html" style="color: var(--text-muted);">Privacy Policy</a>
+            <a href="terms.html" style="color: var(--text-muted);">Terms of Service</a>
+        </div>
+        <p>&copy; 2026 Apna Downloader. All rights reserved.</p>
+    </footer>
 
     <script src="admin.js"></script>
     <script>

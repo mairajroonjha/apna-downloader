@@ -9,14 +9,12 @@
             --border-color: rgba(255, 255, 255, 0.08);
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
-            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-bg: rgba(255, 255, 255, 0.03);
             --accent-color: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
             --success-color: #10b981;
             --failed-color: #ef4444;
         }
 
-        /* 1. Light/Bright Theme Override */
         body.theme-light {
             --bg-primary: #f8fafc;
             --bg-gradient: radial-gradient(circle at 50% 50%, #ffffff 0%, #f8fafc 100%);
@@ -24,60 +22,45 @@
             --text-main: #0f172a;
             --text-muted: #64748b;
             --card-bg: #ffffff;
-            --accent-glow: rgba(59, 130, 246, 0.15);
-        }
-
-        /* 2. Glassmorphic Theme Override */
-        body.theme-glass {
-            --bg-primary: #020617;
-            --bg-gradient: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
-            --border-color: rgba(255, 255, 255, 0.12);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --card-bg: rgba(15, 23, 42, 0.65);
         }
 
         body {
-            width: 280px;
+            width: 340px;
+            max-height: 480px;
             margin: 0;
-            padding: 16px;
+            padding: 12px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg-primary);
             background: var(--bg-gradient);
             color: var(--text-main);
-            overflow: hidden;
-            transition: background 0.3s, color 0.3s;
+            user-select: none;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+            justify-content: space-between;
         }
 
-        .logo-container {
-            width: 32px;
-            height: 32px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+        .logo-box {
             display: flex;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            gap: 8px;
         }
 
         .logo-img {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
         }
 
         .logo-text {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 800;
             color: var(--text-main);
-            letter-spacing: 0.5px;
         }
 
         .logo-text span {
@@ -86,136 +69,170 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .status-box {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .status-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .status-label {
-            font-weight: 500;
-        }
-
-        .status-value {
+        .status-badge {
             display: flex;
             align-items: center;
             gap: 6px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--text-main);
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: #9ca3af;
-            box-shadow: 0 0 6px rgba(156, 163, 175, 0.5);
-            transition: all 0.3s ease;
         }
 
-        .status-dot.connected {
-            background: var(--success-color);
-            box-shadow: 0 0 10px var(--success-color);
-            animation: pulseSuccess 2s infinite ease-in-out;
+        .status-dot.connected { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+        .status-dot.disconnected { background: var(--failed-color); box-shadow: 0 0 6px var(--failed-color); }
+
+        /* Media Sniffer Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
         }
 
-        .status-dot.disconnected {
-            background: var(--failed-color);
-            box-shadow: 0 0 10px var(--failed-color);
-            animation: pulseFailed 2s infinite ease-in-out;
-        }
-
-        .footer {
-            margin-top: 14px;
-            font-size: 10px;
-            color: #6b7280;
+        .tab-btn {
+            flex: 1;
+            padding: 6px 2px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
             text-align: center;
-            letter-spacing: 0.2px;
         }
 
-        @keyframes pulseSuccess {
-            0%, 100% { box-shadow: 0 0 6px var(--success-color); }
-            50% { box-shadow: 0 0 14px var(--success-color); }
+        .tab-btn.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
         }
 
-        @keyframes pulseFailed {
-            0%, 100% { box-shadow: 0 0 6px var(--failed-color); }
-            50% { box-shadow: 0 0 14px var(--failed-color); }
+        /* Items Container */
+        .media-list {
+            flex: 1;
+            max-height: 260px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 2px;
         }
-#connection-dot { transition: all 0.3s; }
-#connection-text { transition: all 0.3s; }
+
+        .media-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 11px;
+            gap: 8px;
+        }
+
+        .media-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .media-title {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+
+        .media-sub {
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+
+        .btn-download-item {
+            padding: 4px 10px;
+            background: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-download-item:hover {
+            opacity: 0.9;
+        }
+
+        .action-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+        }
+
+        .btn-download-all {
+            width: 100%;
+            padding: 7px 12px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px 10px;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo-container">
+        <div class="logo-box">
             <img class="logo-img" src="icon48.png" alt="Logo">
+            <div class="logo-text">Apna <span>Dowanloader</span></div>
         </div>
-        <div class="logo-text">Apna <span>Dowanloader</span></div>
-    </div>
-    <div class="status-box">
-        <div class="status-row">
-            <span class="status-label">Desktop App Integration:</span>
-            <div class="status-value">
-                <div id="connection-dot" class="status-dot"></div>
-                <span id="connection-text">Checking...</span>
-            </div>
+        <div class="status-badge">
+            <div id="connection-dot" class="status-dot"></div>
+            <span id="connection-text">Checking</span>
         </div>
     </div>
-    <div class="footer">
-        Apna Dowanloader Helper Extension v1.0
+
+    <!-- Media Tabs -->
+    <div class="tab-bar">
+        <button class="tab-btn active" id="tab-vids">🎥 Videos (<span id="cnt-vids">0</span>)</button>
+        <button class="tab-btn" id="tab-auds">🎵 Audios (<span id="cnt-auds">0</span>)</button>
+        <button class="tab-btn" id="tab-imgs">🖼️ Images (<span id="cnt-imgs">0</span>)</button>
+        <button class="tab-btn" id="tab-docs">📄 Docs (<span id="cnt-docs">0</span>)</button>
     </div>
 
-    <script>
-        async function checkConnection() {
-            const dot = document.getElementById('connection-dot');
-            const text = document.getElementById('connection-text');
-            
-            chrome.runtime.sendMessage({ action: 'get-settings' }, (settings) => {
-                if (settings && !settings.error) {
-                    dot.className = 'status-dot connected';
-                    text.innerText = 'Connected';
-                    
-                    if (settings.theme) {
-                        document.body.className = 'theme-' + settings.theme;
-                    }
-                    
-                    if (settings.accentColor) {
-                        const accentColors = {
-                            blue: '#3b82f6',
-                            purple: '#a855f7',
-                            green: '#10b981',
-                            red: '#ef4444',
-                            gold: '#f59e0b',
-                            pink: '#ec4899'
-                        };
-                        const hex = accentColors[settings.accentColor];
-                        if (hex) {
-                            document.documentElement.style.setProperty('--accent-color', hex);
-                        }
-                    }
-                } else {
-                    dot.className = 'status-dot disconnected';
-                    text.innerText = 'Disconnected';
-                }
-            });
-        }
+    <!-- List Box -->
+    <div class="media-list" id="media-list-container">
+        <div class="empty-state">Scanning page for downloadable media...</div>
+    </div>
 
-        // Run check on open
-        checkConnection();
-    </script>
+    <div class="action-footer">
+        <button class="btn-download-all" id="btn-download-all-items">Download All Items with Apna</button>
+    </div>
+
+    <script src="popup.js"></script>
 </body>
 </html>

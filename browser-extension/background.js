@@ -329,6 +329,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         return true;
     }
+    if (message && message.action === 'sendToApna') {
+        sendToApna(message.url, message.filename || 'download', sender && sender.tab ? sender.tab.url : null);
+        sendResponse({ success: true });
+        return true;
+    }
     if (message && message.action === 'get-video-info') {
         sendNativeMessage({
             action: 'get-video-info',

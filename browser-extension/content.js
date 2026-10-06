@@ -827,4 +827,50 @@
             });
         });
     }
+
+    // Listen for extension popup requests
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === 'scrapeMedia') {
+            const media = { videos: [], audios: [], images: [], documents: [] };
+
+            // 1. Scrape Videos
+            const vids = Array.from(document.querySelectorAll('video, a[href*=".mp4"], a[href*=".mkv"], a[href*=".webm"]'));
+            vids.forEach(v => {
+                const src = v.src || v.href || (v.querySelector('source') ? v.querySelector('source').src : '');
+                if (src && !src.startsWith('blob:')) {
+                    media.videos.push({ url: src, title: v.title || document.title || 'Video', format: 'Video Stream' });
+                }
+            });
+
+            // 2. Scrape Audios
+            const auds = Array.from(document.querySelectorAll('audio, a[href*=".mp3"], a[href*=".wav"], a[href*=".aac"]'));
+            auds.forEach(a => {
+                const src = a.src || a.href || (a.querySelector('source') ? a.querySelector('source').src : '');
+                if (src) {
+                    media.audios.push({ url: src, title: a.title || 'Audio Track', format: 'Audio' });
+                }
+            });
+
+            // 3. Scrape Images
+            const imgs = Array.from(document.querySelectorAll('img[src], a[href*=".png"], a[href*=".jpg"], a[href*=".jpeg"], a[href*=".webp"]'));
+            imgs.forEach(i => {
+                const src = i.src || i.href || '';
+                if (src && src.startsWith('http')) {
+                    media.images.push({ url: src, title: i.alt || i.title || 'Image', format: 'Image' });
+                }
+            });
+
+            // 4. Scrape Documents
+            const docs = Array.from(document.querySelectorAll('a[href*=".pdf"], a[href*=".zip"], a[href*=".rar"], a[href*=".docx"], a[href*=".xlsx"], a[href*=".exe"]'));
+            docs.forEach(d => {
+                const src = d.href || '';
+                if (src) {
+                    media.documents.push({ url: src, title: d.innerText.trim() || 'Document', format: 'File' });
+                }
+            });
+
+            sendResponse({ media });
+        }
+        return true;
+    });
 })();

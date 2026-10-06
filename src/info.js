@@ -39,7 +39,7 @@
         defaultCategoryPaths = await window.api.getDefaultDownloadDirs();
         
         // Apply theme/accent
-        document.body.className = `theme-${appSettings.theme || 'light'}`;
+        document.body.className = `theme-${appSettings.theme || 'dark'}`;
         document.body.setAttribute('data-accent', appSettings.accentColor || 'blue');
         
         // Load custom categories into dropdown

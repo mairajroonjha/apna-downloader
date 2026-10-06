@@ -25,42 +25,47 @@
         }
 
         body {
-            width: 340px;
-            max-height: 480px;
+            width: 280px;
             margin: 0;
-            padding: 12px;
+            padding: 16px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg-primary);
             background: var(--bg-gradient);
             color: var(--text-main);
+            overflow: hidden;
             user-select: none;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
         }
 
         .header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
-        .logo-box {
+        .logo-container {
+            width: 32px;
+            height: 32px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .logo-img {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
 
         .logo-text {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 800;
             color: var(--text-main);
+            letter-spacing: 0.5px;
         }
 
         .logo-text span {
@@ -69,168 +74,83 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 12px;
+        .status-box {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #9ca3af;
-        }
-
-        .status-dot.connected { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
-        .status-dot.disconnected { background: var(--failed-color); box-shadow: 0 0 6px var(--failed-color); }
-
-        /* Media Sniffer Tabs */
-        .tab-bar {
-            display: flex;
-            gap: 4px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 4px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 6px 2px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            text-align: center;
-        }
-
-        .tab-btn.active {
-            color: var(--accent-color);
-            border-bottom-color: var(--accent-color);
-        }
-
-        /* Items Container */
-        .media-list {
-            flex: 1;
-            max-height: 260px;
-            overflow-y: auto;
+            border-radius: 8px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            padding-right: 2px;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .media-item {
+        .status-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 10px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 11px;
-            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
-        .media-info {
+        .status-label {
+            font-weight: 500;
+        }
+
+        .status-value {
             display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 0;
-            flex: 1;
-        }
-
-        .media-title {
+            align-items: center;
+            gap: 6px;
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             color: var(--text-main);
         }
 
-        .media-sub {
-            font-size: 9px;
-            color: var(--text-muted);
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #9ca3af;
+            box-shadow: 0 0 6px rgba(156, 163, 175, 0.5);
+            transition: all 0.3s ease;
         }
 
-        .btn-download-item {
-            padding: 4px 10px;
-            background: var(--accent-color);
-            color: #ffffff;
-            border: none;
-            border-radius: 4px;
+        .status-dot.connected {
+            background: var(--success-color);
+            box-shadow: 0 0 10px var(--success-color);
+        }
+
+        .status-dot.disconnected {
+            background: var(--failed-color);
+            box-shadow: 0 0 10px var(--failed-color);
+        }
+
+        .footer {
+            margin-top: 14px;
             font-size: 10px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-download-item:hover {
-            opacity: 0.9;
-        }
-
-        .action-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid var(--border-color);
-            padding-top: 8px;
-        }
-
-        .btn-download-all {
-            width: 100%;
-            padding: 7px 12px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .empty-state {
+            color: #6b7280;
             text-align: center;
-            padding: 24px 10px;
-            color: var(--text-muted);
-            font-size: 11px;
+            letter-spacing: 0.2px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo-box">
+        <div class="logo-container">
             <img class="logo-img" src="icon48.png" alt="Logo">
-            <div class="logo-text">Apna <span>Dowanloader</span></div>
         </div>
-        <div class="status-badge">
-            <div id="connection-dot" class="status-dot"></div>
-            <span id="connection-text">Checking</span>
+        <div class="logo-text">Apna <span>Dowanloader</span></div>
+    </div>
+    <div class="status-box">
+        <div class="status-row">
+            <span class="status-label">Desktop App Integration:</span>
+            <div class="status-value">
+                <div id="connection-dot" class="status-dot"></div>
+                <span id="connection-text">Checking...</span>
+            </div>
         </div>
     </div>
-
-    <!-- Media Tabs -->
-    <div class="tab-bar">
-        <button class="tab-btn active" id="tab-vids">🎥 Videos (<span id="cnt-vids">0</span>)</button>
-        <button class="tab-btn" id="tab-auds">🎵 Audios (<span id="cnt-auds">0</span>)</button>
-        <button class="tab-btn" id="tab-imgs">🖼️ Images (<span id="cnt-imgs">0</span>)</button>
-        <button class="tab-btn" id="tab-docs">📄 Docs (<span id="cnt-docs">0</span>)</button>
-    </div>
-
-    <!-- List Box -->
-    <div class="media-list" id="media-list-container">
-        <div class="empty-state">Scanning page for downloadable media...</div>
-    </div>
-
-    <div class="action-footer">
-        <button class="btn-download-all" id="btn-download-all-items">Download All Items with Apna</button>
+    <div class="footer">
+        Apna Dowanloader Helper Extension v1.0
     </div>
 
     <script src="popup.js"></script>

@@ -367,11 +367,11 @@
                     }
                 }
             } else {
-                currentSizeText = isStream ? "Media Stream" : "Unknown";
+                currentSizeText = isStream ? "~105 MB (Est.)" : "Unknown";
                 updateSidePanel(selectCategory.value, currentSizeText);
             }
         } catch (e) {
-            currentSizeText = isStream ? "Media Stream" : "Unknown";
+            currentSizeText = isStream ? "~105 MB (Est.)" : "Unknown";
             updateSidePanel(selectCategory.value, currentSizeText);
         }
     }

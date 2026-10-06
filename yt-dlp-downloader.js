@@ -436,7 +436,13 @@ class YtDlpDownloader extends EventEmitter {
                         const parsed = JSON.parse(stdoutData);
                         let totalSize = parsed.filesize || parsed.filesize_approx || 0;
                         
-                        if (!totalSize && parsed.formats) {
+                        if (!totalSize && parsed.requested_formats && Array.isArray(parsed.requested_formats)) {
+                            for (const rf of parsed.requested_formats) {
+                                totalSize += (rf.filesize || rf.filesize_approx || 0);
+                            }
+                        }
+
+                        if (!totalSize && parsed.formats && Array.isArray(parsed.formats)) {
                             const videoFormats = parsed.formats.filter(f => f.vcodec !== 'none');
                             const audioFormats = parsed.formats.filter(f => f.acodec !== 'none' && f.vcodec === 'none');
                             
@@ -454,6 +460,10 @@ class YtDlpDownloader extends EventEmitter {
                                 const tbr = (bestVideo ? (bestVideo.tbr || 1800) : 1800) + (bestAudio ? (bestAudio.abr || 128) : 128);
                                 totalSize = Math.round(parsed.duration * (tbr * 1000 / 8));
                             }
+                        }
+
+                        if (!totalSize && parsed.duration) {
+                            totalSize = Math.round(parsed.duration * (1928 * 1000 / 8));
                         }
                         
                         resolve({

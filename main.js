@@ -1912,15 +1912,11 @@ async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
         const dummy = new YtDlpDownloader(url, 'dummy-path');
         return new Promise((resolve) => {
             dummy.getInfo(url).then(info => {
-                if (info && info.filesize) {
-                    resolve({ success: true, size: info.filesize, title: info.title || 'video' });
-                } else if (info && info.filesize_approx) {
-                    resolve({ success: true, size: info.filesize_approx, title: info.title || 'video' });
-                } else {
-                    resolve({ success: true, size: 0, title: info ? info.title : 'video' });
-                }
-            }).catch(() => {
-                resolve({ success: false });
+                const calculatedSize = info ? (info.filesize || info.filesize_approx || 0) : 0;
+                resolve({ success: true, size: calculatedSize, title: (info && info.title) ? info.title : 'video' });
+            }).catch((err) => {
+                console.error('[fetchMediaSizeHelper] Stream probe failed:', err);
+                resolve({ success: false, size: 0 });
             });
         });
     }

@@ -610,14 +610,17 @@ export default {
                 try { devices = JSON.parse(sub.active_devices || "[]"); } catch(e) {}
 
                 if (!devices.includes(deviceId)) {
-                    if (devices.length >= sub.pc_slots) {
-                        return new Response(JSON.stringify({
-                            success: false,
-                            status: "device_limit_reached",
-                            message: `License slot limit reached. This plan only supports up to ${sub.pc_slots} active PC(s). Please manage active slots in the web portal.`
-                        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                    const slots = Math.max(1, sub.pc_slots || 1);
+                    if (slots === 1) {
+                        // Single PC plan: automatically update to current device ID (heals legacy random UUIDs after reinstall)
+                        devices = [deviceId];
+                    } else if (devices.length >= slots) {
+                        // Multi-PC plan: keep most recently verified devices up to slot limit
+                        devices = devices.slice(devices.length - slots + 1);
+                        devices.push(deviceId);
+                    } else {
+                        devices.push(deviceId);
                     }
-                    devices.push(deviceId);
                     await env.DB.prepare("UPDATE subscriptions SET active_devices = ? WHERE user_id = ?").bind(JSON.stringify(devices), decoded.userId).run();
                 }
 

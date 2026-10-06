@@ -2004,7 +2004,6 @@ async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
                     }
                 }
 
-                
                 let filename = path.basename(parsedUrl.pathname);
                 const disposition = res.headers['content-disposition'];
                 if (disposition) {
@@ -2022,6 +2021,25 @@ async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
                 res.destroy();
                 if (!filename || filename === '/' || filename === '.') {
                     filename = 'download';
+                }
+
+                // If size is still 0, attempt a quick Range: bytes=0-1 GET probe fallback
+                if (!size && depth === 0) {
+                    const rangeHeaders = { ...headers, 'Range': 'bytes=0-1' };
+                    httpLib.get(url, { headers: rangeHeaders }, (rangeRes) => {
+                        let probedSize = 0;
+                        const rangeHeaderVal = rangeRes.headers['content-range'];
+                        if (rangeHeaderVal) {
+                            const match = rangeHeaderVal.match(/\/(\d+)/);
+                            if (match && match[1]) probedSize = parseInt(match[1], 10);
+                        }
+                        if (!probedSize && rangeRes.headers['content-length']) {
+                            probedSize = parseInt(rangeRes.headers['content-length'], 10);
+                        }
+                        rangeRes.destroy();
+                        resolve({ success: true, size: probedSize || 0, title: filename });
+                    }).on('error', () => resolve({ success: true, size: 0, title: filename }));
+                    return;
                 }
                 
                 resolve({ success: true, size: size || 0, title: filename });

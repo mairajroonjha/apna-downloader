@@ -154,10 +154,17 @@
         }
     }
 
-    if (tabVideo) tabVideo.addEventListener('click', () => { setActiveTab('video'); selectCategory.value = 'videos'; updateCategoryUI('videos'); });
-    if (tabAudio) tabAudio.addEventListener('click', () => { setActiveTab('audio'); selectCategory.value = 'music'; updateCategoryUI('music'); });
-    if (tabImage) tabImage.addEventListener('click', () => { setActiveTab('image'); selectCategory.value = 'other'; updateCategoryUI('other'); });
-    if (tabDocument) tabDocument.addEventListener('click', () => { setActiveTab('document'); selectCategory.value = 'documents'; updateCategoryUI('documents'); });
+    if (selectMediaQuality) {
+        selectMediaQuality.addEventListener('change', () => {
+            const selectedQual = selectMediaQuality.value || grabQuality;
+            checkAndFetchMediaSize(grabUrl, selectedQual);
+        });
+    }
+
+    if (tabVideo) tabVideo.addEventListener('click', () => { setActiveTab('video'); selectCategory.value = 'videos'; updateCategoryUI('videos'); checkAndFetchMediaSize(grabUrl, selectMediaQuality ? selectMediaQuality.value : grabQuality); });
+    if (tabAudio) tabAudio.addEventListener('click', () => { setActiveTab('audio'); selectCategory.value = 'music'; updateCategoryUI('music'); checkAndFetchMediaSize(grabUrl, selectMediaQuality ? selectMediaQuality.value : grabQuality); });
+    if (tabImage) tabImage.addEventListener('click', () => { setActiveTab('image'); selectCategory.value = 'other'; updateCategoryUI('other'); checkAndFetchMediaSize(grabUrl, selectMediaQuality ? selectMediaQuality.value : grabQuality); });
+    if (tabDocument) tabDocument.addEventListener('click', () => { setActiveTab('document'); selectCategory.value = 'documents'; updateCategoryUI('documents'); checkAndFetchMediaSize(grabUrl, selectMediaQuality ? selectMediaQuality.value : grabQuality); });
 
     // Detect Initial Category & Auto Tab
     const initialCategory = detectCategory(cleanFilename);
@@ -319,13 +326,14 @@
         }
     }
 
-    async function checkAndFetchMediaSize(url) {
+    async function checkAndFetchMediaSize(url, targetQual = null) {
         if (sideFileSize) {
             sideFileSize.innerHTML = `<span class="skeleton skeleton-badge" style="width:75px; height:18px;"></span>`;
         }
         
+        const qual = targetQual || (selectMediaQuality ? selectMediaQuality.value : grabQuality);
         try {
-            const res = await window.api.fetchMediaSize(url, grabQuality, { cookies: grabCookies, referer: grabReferer, userAgent: grabUserAgent });
+            const res = await window.api.fetchMediaSize(url, qual, { cookies: grabCookies, referer: grabReferer, userAgent: grabUserAgent });
             if (res && res.success && res.size > 0) {
                 currentSizeText = formatBytes(res.size);
                 updateSidePanel(selectCategory.value, currentSizeText);

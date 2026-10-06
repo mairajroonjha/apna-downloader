@@ -16,6 +16,7 @@ const DownloadEngine = require('./download-engine');
 const YtDlpDownloader = require('./yt-dlp-downloader');
 const settingsManager = require('./settings-manager');
 const MediaConverter = require('./converter');
+const UniversalExtractor = require('./universal-extractor');
 
 let mainWindow = null;
 let authWindow = null;
@@ -2037,6 +2038,14 @@ async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
 ipcMain.handle('fetch-media-size', async (event, payload) => {
     const { url, quality, cookies, referer, userAgent } = payload || {};
     return await fetchMediaSizeHelper(url, quality, 0, { cookies, referer, userAgent });
+});
+
+ipcMain.handle('extract-universal-info', async (event, url) => {
+    try {
+        return await UniversalExtractor.extractInfo(url);
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
 });
 
 

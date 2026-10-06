@@ -268,7 +268,23 @@
             <h2><i class="fa-solid fa-file-arrow-down"></i> Download File Info</h2>
         </div>
         
-        <div class="modal-body-wrapper">
+            <!-- Universal Media Category Tabs -->
+            <div class="media-tabs-bar" style="display: flex; gap: 6px; padding: 10px 18px 0 18px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+                <button class="tab-btn active" id="tab-video" style="flex: 1; padding: 8px; border: none; border-bottom: 2px solid var(--accent-color); background: transparent; color: var(--text-main); font-weight: 600; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fa-solid fa-video" style="color: #3b82f6;"></i> <span>Video</span>
+                </button>
+                <button class="tab-btn" id="tab-audio" style="flex: 1; padding: 8px; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--text-muted); font-weight: 500; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fa-solid fa-music" style="color: #10b981;"></i> <span>Audio</span>
+                </button>
+                <button class="tab-btn" id="tab-image" style="flex: 1; padding: 8px; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--text-muted); font-weight: 500; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fa-solid fa-image" style="color: #f59e0b;"></i> <span>Images</span>
+                </button>
+                <button class="tab-btn" id="tab-document" style="flex: 1; padding: 8px; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--text-muted); font-weight: 500; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> <span>Documents/Files</span>
+                </button>
+            </div>
+
+            <div class="modal-body-wrapper">
             <!-- Main Form Section -->
             <div class="modal-main-form">
                 <div class="form-group">
@@ -276,6 +292,19 @@
                     <input type="text" id="input-url" placeholder="Paste link address here (HTTP/HTTPS)" readonly>
                 </div>
                 
+                <div class="form-group" id="media-quality-group">
+                    <label for="select-media-quality" id="lbl-media-quality">Quality / Format</label>
+                    <select id="select-media-quality">
+                        <option value="best">Best Available (Auto-Detect)</option>
+                        <option value="2160p">4K Ultra HD (2160p)</option>
+                        <option value="1080p" selected>1080p Full HD</option>
+                        <option value="720p">720p HD</option>
+                        <option value="480p">480p SD</option>
+                        <option value="mp3_320">MP3 Audio (320 kbps High Quality)</option>
+                        <option value="mp3_192">MP3 Audio (192 kbps)</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label for="select-category">Category</label>
                     <select id="select-category">

@@ -93,9 +93,78 @@
         cleanFilename += `.${ext}`;
     }
 
-    // Detect Initial Category
+    // Category Tabs Elements
+    const tabVideo = document.getElementById('tab-video');
+    const tabAudio = document.getElementById('tab-audio');
+    const tabImage = document.getElementById('tab-image');
+    const tabDocument = document.getElementById('tab-document');
+    const selectMediaQuality = document.getElementById('select-media-quality');
+
+    let currentActiveTab = 'video';
+
+    function setActiveTab(tabName) {
+        currentActiveTab = tabName;
+        [tabVideo, tabAudio, tabImage, tabDocument].forEach(btn => {
+            if (btn) {
+                btn.style.borderBottomColor = 'transparent';
+                btn.style.color = 'var(--text-muted)';
+                btn.classList.remove('active');
+            }
+        });
+
+        let activeBtn = tabVideo;
+        if (tabName === 'audio') activeBtn = tabAudio;
+        else if (tabName === 'image') activeBtn = tabImage;
+        else if (tabName === 'document') activeBtn = tabDocument;
+
+        if (activeBtn) {
+            activeBtn.style.borderBottomColor = 'var(--accent-color)';
+            activeBtn.style.color = 'var(--text-main)';
+            activeBtn.classList.add('active');
+        }
+
+        // Update Quality Options based on Tab
+        if (selectMediaQuality) {
+            selectMediaQuality.innerHTML = '';
+            if (tabName === 'video') {
+                selectMediaQuality.innerHTML = `
+                    <option value="best">Best Available (Auto-Detect)</option>
+                    <option value="2160p">4K Ultra HD (2160p)</option>
+                    <option value="1080p" selected>1080p Full HD</option>
+                    <option value="720p">720p HD</option>
+                    <option value="480p">480p SD</option>
+                `;
+            } else if (tabName === 'audio') {
+                selectMediaQuality.innerHTML = `
+                    <option value="mp3_320" selected>MP3 Audio (320 kbps High Quality)</option>
+                    <option value="mp3_192">MP3 Audio (192 kbps)</option>
+                    <option value="m4a">M4A AAC Original Track</option>
+                    <option value="wav">WAV Uncompressed Audio</option>
+                `;
+            } else if (tabName === 'image') {
+                selectMediaQuality.innerHTML = `
+                    <option value="highres" selected>High-Res Original Image (PNG/JPG)</option>
+                    <option value="compressed">Compressed WebP Image</option>
+                `;
+            } else {
+                selectMediaQuality.innerHTML = `
+                    <option value="turbo" selected>Turbo Multi-Segment Direct File</option>
+                `;
+            }
+        }
+    }
+
+    if (tabVideo) tabVideo.addEventListener('click', () => { setActiveTab('video'); selectCategory.value = 'videos'; updateCategoryUI('videos'); });
+    if (tabAudio) tabAudio.addEventListener('click', () => { setActiveTab('audio'); selectCategory.value = 'music'; updateCategoryUI('music'); });
+    if (tabImage) tabImage.addEventListener('click', () => { setActiveTab('image'); selectCategory.value = 'other'; updateCategoryUI('other'); });
+    if (tabDocument) tabDocument.addEventListener('click', () => { setActiveTab('document'); selectCategory.value = 'documents'; updateCategoryUI('documents'); });
+
+    // Detect Initial Category & Auto Tab
     const initialCategory = detectCategory(cleanFilename);
     selectCategory.value = initialCategory;
+    if (initialCategory === 'music') setActiveTab('audio');
+    else if (initialCategory === 'documents' || initialCategory === 'compressed' || initialCategory === 'programs') setActiveTab('document');
+    else setActiveTab('video');
 
     // Update path displays
     updateCategoryUI(initialCategory);

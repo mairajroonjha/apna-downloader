@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('api', {
     unbindDeviceSlot: (deviceId) => ipcRenderer.invoke('unbind-device-slot', deviceId),
     activateFreeTrial: () => ipcRenderer.invoke('activate-free-trial'),
     startGoogleAuth: () => ipcRenderer.invoke('start-google-auth'),
+    extractUniversalInfo: (url) => ipcRenderer.invoke('extract-universal-info', url),
 
     onLicenseStatusLocked: (callback) => {
         const subscription = (event, data) => callback(data);

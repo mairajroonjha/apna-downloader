@@ -591,9 +591,15 @@
                                 <option value="other">General Feedback / Sales Questions</option>
                             </select>
                         </div>
-                        <div class="form-group" style="margin-bottom: 25px;">
+                        <div class="form-group" style="margin-bottom: 20px;">
                             <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Your Message</label>
                             <textarea id="contact-message" class="form-input contact-input-3d" style="height: 120px; resize: vertical; width: 100%;" placeholder="Type details here..." required></textarea>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="contact-consent" required style="accent-color: var(--accent-color);">
+                                <span>I agree to the <a href="privacy.html" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Privacy Policy</a> and <a href="terms.html" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Terms of Service</a>.</span>
+                            </label>
                         </div>
                         <button type="submit" class="contact-btn-3d" style="width: 100%; font-size: 13px; padding: 12px;"><i class="fa-solid fa-paper-plane"></i> Submit Inquiry</button>
                     </form>
@@ -858,6 +864,28 @@
             window.addEventListener("scroll", activateLink);
             activateLink();
         });
+    </script>
+
+    <!-- Functional Storage Consent Banner -->
+    <div id="cookie-consent-banner" style="position: fixed; bottom: 20px; left: 20px; right: 20px; max-width: 500px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1000; font-size: 13px; color: var(--text-muted); display: none;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 15px;">
+            <div>
+                <strong style="color: var(--text-main); font-size: 14px; display: block; margin-bottom: 4px;"><i class="fa-solid fa-cookie-bite" style="color: var(--accent-color);"></i> Functional Storage Notice</strong>
+                <span>We use strictly necessary functional storage (session tokens & theme settings) to operate our dashboard. We do not use tracking or marketing cookies. Read our <a href="cookie-policy.html" style="color: var(--accent-color); text-decoration: underline;">Cookie Policy</a>.</span>
+            </div>
+            <button type="button" onclick="acceptCookieConsent()" style="padding: 8px 16px; background: var(--accent-color); border: none; border-radius: 6px; color: white; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; margin-top: 2px;">Got It</button>
+        </div>
+    </div>
+    <script>
+        (function() {
+            if (!localStorage.getItem('cookieConsentAccepted')) {
+                document.getElementById('cookie-consent-banner').style.display = 'block';
+            }
+        })();
+        function acceptCookieConsent() {
+            localStorage.setItem('cookieConsentAccepted', 'true');
+            document.getElementById('cookie-consent-banner').style.display = 'none';
+        }
     </script>
 </body>
 </html>

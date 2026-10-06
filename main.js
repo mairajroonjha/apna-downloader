@@ -30,6 +30,10 @@ let isQuitting = false;
 let hasShownMinimizeNotification = false;
 
 let settings = settingsManager.load();
+if (!settings.deviceId) {
+    settings.deviceId = getPermanentMachineId();
+    settingsManager.save(settings);
+}
 
 let licenseStatus = {
     status: 'trial', // 'trial', 'active', 'expired'
@@ -41,12 +45,70 @@ let licenseStatus = {
 
 const BACKEND_URL = "https://apna-downloader-backend.mirajroonjha.workers.dev"; // Cloudflare Workers subdomain
 
+
+function getPermanentMachineId() {
+    const crypto = require('crypto');
+    const { execSync } = require('child_process');
+    const os = require('os');
+    
+    let rawId = '';
+    const platform = process.platform;
+    
+    try {
+        if (platform === 'win32') {
+            const cmd = 'reg query "HKLM\\SOFTWARE\\Microsoft\\Cryptography" /v MachineGuid';
+            const stdout = execSync(cmd, { encoding: 'utf8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] });
+            const match = stdout.match(/MachineGuid\s+REG_SZ\s+([a-fA-F0-9-]+)/i);
+            if (match && match[1]) {
+                rawId = match[1].trim();
+            } else {
+                const psCmd = 'powershell -command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"';
+                rawId = execSync(psCmd, { encoding: 'utf8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+            }
+        } else if (platform === 'darwin') {
+            const macCmd = 'ioreg -rd1 -c IOPlatformExpertDevice | grep IOPlatformUUID';
+            const stdout = execSync(macCmd, { encoding: 'utf8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] });
+            const match = stdout.match(/"IOPlatformUUID"\s*=\s*"([^"]+)"/i);
+            if (match && match[1]) {
+                rawId = match[1].trim();
+            }
+        } else if (platform === 'linux') {
+            const fs = require('fs');
+            if (fs.existsSync('/etc/machine-id')) {
+                rawId = fs.readFileSync('/etc/machine-id', 'utf8').trim();
+            } else if (fs.existsSync('/var/lib/dbus/machine-id')) {
+                rawId = fs.readFileSync('/var/lib/dbus/machine-id', 'utf8').trim();
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to query OS MachineGuid, falling back to network CPU specs:', e.message);
+    }
+
+    if (!rawId) {
+        const netInterfaces = os.networkInterfaces();
+        let macs = [];
+        for (const key of Object.keys(netInterfaces)) {
+            for (const net of netInterfaces[key]) {
+                if (!net.internal && net.mac && net.mac !== '00:00:00:00:00:00') {
+                    macs.push(net.mac);
+                }
+            }
+        }
+        const cpus = os.cpus().map(c => c.model).join(',');
+        rawId = `${os.hostname()}-${cpus}-${macs.join(',')}`;
+    }
+
+    const hash = crypto.createHash('sha256').update(`apna_downloader_hwid_${rawId}`).digest('hex');
+    return `${hash.substring(0, 8)}-${hash.substring(8, 12)}-${hash.substring(12, 16)}-${hash.substring(16, 20)}-${hash.substring(20, 32)}`;
+}
+
 async function verifyLicenseStatus() {
     if (!settings.authToken) return { success: false, status: 'unauthorized', message: 'Auth token missing' };
     if (!settings.deviceId) {
-        settings.deviceId = require('crypto').randomUUID();
+        settings.deviceId = getPermanentMachineId();
         settingsManager.save(settings);
     }
+
     
     try {
         const response = await fetch(`${BACKEND_URL}/api/license/verify`, {

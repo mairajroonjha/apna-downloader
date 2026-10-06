@@ -1768,3 +1768,109 @@ body.light-theme .tour-popover-footer {
     text-decoration: underline !important;
     filter: brightness(1.2);
 }
+
+/* ==========================================================================
+   UX Performance & Accessibility Enhancements (Desktop App)
+   ========================================================================== */
+
+@keyframes skeleton-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.04) 25%,
+        rgba(255, 255, 255, 0.1) 37%,
+        rgba(255, 255, 255, 0.04) 63%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+    border-radius: 4px;
+    display: inline-block;
+    pointer-events: none;
+}
+
+.skeleton-text {
+    height: 12px;
+    margin-bottom: 6px;
+    width: 100%;
+    border-radius: 4px;
+}
+
+.skeleton-row {
+    height: 38px;
+    width: 100%;
+    margin-bottom: 6px;
+    border-radius: 4px;
+}
+
+.app-tooltip {
+    position: fixed;
+    z-index: 10000;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: #ffffff;
+    background-color: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(3px) scale(0.96);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    white-space: nowrap;
+}
+
+.app-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.error-boundary-box {
+    padding: 24px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px dashed rgba(239, 68, 68, 0.3);
+    text-align: center;
+    color: var(--text-main);
+    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.error-boundary-icon {
+    font-size: 28px;
+    color: var(--danger-color);
+}
+
+.error-boundary-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.error-boundary-msg {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.btn-retry {
+    padding: 6px 14px;
+    background: var(--accent-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+

@@ -96,21 +96,38 @@ async function showDashboard() {
     await loadClaimsList();
 }
 
-async function loadSubscriptionData() {
-    try {
+async function loadSubscriptionData(forceRefresh = false) {
+    if (!token) return;
+
+    // 1. Show skeleton loaders while fetching if container is empty
+    if (devicesTableBody && (!devicesTableBody.children.length || devicesTableBody.querySelector('.skeleton'))) {
+        devicesTableBody.innerHTML = `
+            <tr><td><span class="skeleton skeleton-text" style="width:70px;"></span></td><td><span class="skeleton skeleton-text" style="width:180px;"></span></td><td><span class="skeleton skeleton-text" style="width:90px;"></span></td></tr>
+            <tr><td><span class="skeleton skeleton-text" style="width:70px;"></span></td><td><span class="skeleton skeleton-text" style="width:180px;"></span></td><td><span class="skeleton skeleton-text" style="width:90px;"></span></td></tr>
+        `;
+    }
+
+    const fetcher = async () => {
         const response = await fetch(`${BACKEND_URL}/api/portal/subscription`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
+            headers: { "Authorization": `Bearer ${token}` }
         });
-        
         if (!response.ok) {
-            handleLogout();
-            return;
+            if (response.status === 401) handleLogout();
+            throw new Error(`Server returned HTTP ${response.status}`);
         }
-        
-        const data = await response.json();
-        if (data.success) {
+        return await response.json();
+    };
+
+    try {
+        let data;
+        if (window.ApiCache && !forceRefresh) {
+            data = await window.ApiCache.fetchWithCache(`sub_profile_${token}`, fetcher, { ttlMs: 120000 });
+        } else {
+            data = await fetcher();
+            if (window.ApiCache) window.ApiCache.set(`sub_profile_${token}`, data, 120000);
+        }
+
+        if (data && data.success) {
             const profile = data.profile;
             userEmailHeader.innerText = profile.email;
             dashboardUserName.innerText = profile.email.split("@")[0];
@@ -149,11 +166,16 @@ async function loadSubscriptionData() {
             } else {
                 devices.forEach((devId, idx) => {
                     const row = document.createElement("tr");
+                    row.id = `device-row-${devId}`;
                     row.innerHTML = `
                         <td>PC Slot ${idx + 1}</td>
                         <td style="font-family: monospace; color: var(--accent-color);">${devId}</td>
                         <td>
-                            <button class="btn-unbind" onclick="unbindDevice('${devId}')">
+                            <button class="btn-unbind" 
+                                    data-tooltip="Unbind this hardware slot to license a new PC" 
+                                    data-tooltip-placement="top" 
+                                    aria-label="Unbind slot ${idx + 1}"
+                                    onclick="unbindDevice('${devId}')">
                                 <i class="fa-solid fa-link-slash"></i> Unbind Slot
                             </button>
                         </td>
@@ -164,8 +186,16 @@ async function loadSubscriptionData() {
         }
     } catch(e) {
         console.error("Failed to load subscription details:", e);
+        if (window.ErrorBoundary && devicesTableBody) {
+            window.ErrorBoundary.render(devicesTableBody.parentElement, {
+                title: "Unable to load subscription overview",
+                message: "Please check your network connection and try again.",
+                onRetry: () => loadSubscriptionData(true)
+            });
+        }
     }
 }
+
 
 async function handleLoginSubmit(event) {
     event.preventDefault();
@@ -316,6 +346,22 @@ window.handleResetVerifySubmit = handleResetVerifySubmit;
 async function unbindDevice(deviceId) {
     if (!confirm("Are you sure you want to unbind this hardware slot? This will allow you to authorize a new computer in its place.")) return;
     
+    // OPTIMISTIC UI: Immediately fade out target row
+    const targetRow = document.getElementById(`device-row-${deviceId}`);
+    const previousHTML = devicesTableBody ? devicesTableBody.innerHTML : "";
+    
+    if (targetRow) {
+        targetRow.style.opacity = "0.3";
+        targetRow.style.pointerEvents = "none";
+        setTimeout(() => {
+            if (targetRow.parentElement) targetRow.remove();
+        }, 200);
+    }
+    
+    if (window.showToast) {
+        window.showToast("Unbinding hardware slot...", "info");
+    }
+
     try {
         const response = await fetch(`${BACKEND_URL}/api/portal/device/unbind`, {
             method: "POST",
@@ -328,14 +374,33 @@ async function unbindDevice(deviceId) {
         
         const data = await response.json();
         if (data.success) {
-            loadSubscriptionData();
+            if (window.ApiCache) {
+                window.ApiCache.invalidate("sub_profile_");
+            }
+            if (window.showToast) {
+                window.showToast("Hardware slot unbound successfully!", "success");
+            }
+            loadSubscriptionData(true);
         } else {
-            alert(data.error || "Failed to unbind slot.");
+            // ROLLBACK on server failure
+            if (devicesTableBody) devicesTableBody.innerHTML = previousHTML;
+            if (window.showToast) {
+                window.showToast(data.error || "Failed to unbind slot.", "danger");
+            } else {
+                alert(data.error || "Failed to unbind slot.");
+            }
         }
     } catch(e) {
-        alert("Failed to reach server.");
+        // ROLLBACK on network drop
+        if (devicesTableBody) devicesTableBody.innerHTML = previousHTML;
+        if (window.showToast) {
+            window.showToast("Network connection error. Reverted device slot.", "danger");
+        } else {
+            alert("Failed to reach server.");
+        }
     }
 }
+
 
 function loginWithGoogle() {
     const clientId = "732595466975-kvoo3oio590k54bse7jhhu5pmctp7u1g.apps.googleusercontent.com";

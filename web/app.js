@@ -4,16 +4,35 @@ let activeOption = 'monthly';
 let pricingData = [];
 
 async function loadPricing() {
-    try {
+    const container = document.getElementById("pricing-grid-container");
+    
+    // 1. Show skeleton cards while loading if empty
+    if (container && (!container.children.length || container.querySelector('.skeleton'))) {
+        container.innerHTML = `
+            <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-btn"></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-btn"></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-btn"></div></div>
+        `;
+    }
+
+    const fetcher = async () => {
         const headers = {};
         const token = localStorage.getItem("user_token");
-        if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-        }
+        if (token) headers["Authorization"] = `Bearer ${token}`;
         
         const res = await fetch(`${BACKEND_URL}/api/pricing`, { headers });
-        const data = await res.json();
-        if (data.success) {
+        return await res.json();
+    };
+
+    try {
+        let data;
+        if (window.ApiCache) {
+            data = await window.ApiCache.fetchWithCache("public_pricing", fetcher, { ttlMs: 300000, persist: true });
+        } else {
+            data = await fetcher();
+        }
+
+        if (data && data.success) {
             pricingData = data.pricing;
             if (data.trial_days) {
                 document.querySelectorAll(".trial-days-count").forEach(el => {
@@ -39,6 +58,7 @@ async function loadPricing() {
         renderPricing();
     }
 }
+
 
 function switchBilling(option) {
     activeOption = option;

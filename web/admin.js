@@ -89,30 +89,55 @@ async function showDashboard() {
     switchAdminTab('users');
 }
 
-async function loadUsers() {
-    try {
+async function loadUsers(forceRefresh = false) {
+    const tableBody = document.getElementById("users-table-body");
+    if (tableBody && (!tableBody.children.length || tableBody.querySelector('.skeleton'))) {
+        tableBody.innerHTML = `
+            <tr><td><span class="skeleton skeleton-text" style="width:140px;"></span></td><td><span class="skeleton skeleton-text" style="width:70px;"></span></td><td><span class="skeleton skeleton-text" style="width:60px;"></span></td><td><span class="skeleton skeleton-text" style="width:50px;"></span></td><td><span class="skeleton skeleton-text" style="width:100px;"></span></td></tr>
+            <tr><td><span class="skeleton skeleton-text" style="width:140px;"></span></td><td><span class="skeleton skeleton-text" style="width:70px;"></span></td><td><span class="skeleton skeleton-text" style="width:60px;"></span></td><td><span class="skeleton skeleton-text" style="width:50px;"></span></td><td><span class="skeleton skeleton-text" style="width:100px;"></span></td></tr>
+        `;
+    }
+
+    const fetcher = async () => {
         const response = await fetch(`${BACKEND_URL}/api/admin/users`, {
-            headers: {
-                "Authorization": `Bearer ${adminKey}`
-            }
+            headers: { "Authorization": `Bearer ${adminKey}` }
         });
-        
         if (!response.ok) {
-            handleLogout();
-            authError.innerText = "Session expired or unauthorized admin access.";
-            authError.style.display = "block";
-            return;
+            if (response.status === 401) {
+                handleLogout();
+                authError.innerText = "Session expired or unauthorized admin access.";
+                authError.style.display = "block";
+            }
+            throw new Error(`HTTP ${response.status}`);
         }
-        
-        const data = await response.json();
-        if (data.success) {
+        return await response.json();
+    };
+
+    try {
+        let data;
+        if (window.ApiCache && !forceRefresh) {
+            data = await window.ApiCache.fetchWithCache(`admin_users_${adminKey}`, fetcher, { ttlMs: 120000 });
+        } else {
+            data = await fetcher();
+            if (window.ApiCache) window.ApiCache.set(`admin_users_${adminKey}`, data, 120000);
+        }
+
+        if (data && data.success) {
             usersCached = data.users;
             renderUsers();
         }
     } catch(e) {
         console.error("Failed to load users:", e);
+        if (window.ErrorBoundary && tableBody) {
+            window.ErrorBoundary.render(tableBody.parentElement, {
+                title: "Failed to load user accounts",
+                message: "Please check admin authorization or backend status.",
+                onRetry: () => loadUsers(true)
+            });
+        }
     }
 }
+
 
 async function loadPricing() {
     try {
@@ -967,86 +992,116 @@ function calculatePctFromPromo() {
 
 let claimsCached = [];
 
-async function loadAdminClaims() {
+async function loadAdminClaims(forceRefresh = false) {
     const tableBody = document.querySelector("#admin-page-claims #claims-table-body");
     if (!tableBody) return;
+
+    if (!tableBody.children.length || tableBody.querySelector('.skeleton')) {
+        tableBody.innerHTML = `
+            <tr><td colspan="9"><span class="skeleton skeleton-row"></span></td></tr>
+            <tr><td colspan="9"><span class="skeleton skeleton-row"></span></td></tr>
+        `;
+    }
     
-    try {
+    const fetcher = async () => {
         const response = await fetch(`${BACKEND_URL}/api/admin/payments/claims`, {
-            headers: {
-                "Authorization": `Bearer ${adminKey}`
-            }
+            headers: { "Authorization": `Bearer ${adminKey}` }
         });
-        
-        const data = await response.json();
-        if (data.success) {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    };
+
+    try {
+        let data;
+        if (window.ApiCache && !forceRefresh) {
+            data = await window.ApiCache.fetchWithCache(`admin_claims_${adminKey}`, fetcher, { ttlMs: 60000 });
+        } else {
+            data = await fetcher();
+            if (window.ApiCache) window.ApiCache.set(`admin_claims_${adminKey}`, data, 60000);
+        }
+
+        if (data && data.success) {
             claimsCached = data.claims;
-            tableBody.innerHTML = "";
-            
-            if (claimsCached.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">No payment verification claims found.</td></tr>`;
-                return;
-            }
-            
-            claimsCached.forEach(c => {
-                const dateStr = new Date(c.created_at).toLocaleDateString();
-                const userName = `${c.first_name || '-'} ${c.last_name || ''}`.trim();
-                
-                const parts = c.pricing_id.split('_');
-                const slots = parts[0].replace("pc", "");
-                const term = parts[1];
-                const packageTitle = `${slots} PC ${term.charAt(0).toUpperCase() + term.slice(1)}`;
-                
-                let statusBadgeClass = "warning";
-                if (c.status === 'approved') statusBadgeClass = "success";
-                if (c.status === 'rejected') statusBadgeClass = "danger";
-                
-                let receiptCol = `<span style="color: var(--text-muted); font-style: italic;">None</span>`;
-                if (c.receipt_image) {
-                    receiptCol = `
-                        <button class="action-btn" onclick="viewReceiptImage(${c.id})" style="padding: 4px 8px; font-size: 11px; margin: 0;">
-                            <i class="fa-solid fa-image"></i> View Receipt
-                        </button>
-                    `;
-                }
-                
-                let actionsCol = "";
-                if (c.status === 'pending') {
-                    actionsCol = `
-                        <div style="display: flex; gap: 6px;">
-                            <button class="action-btn" onclick="approvePaymentClaim(${c.id})" style="background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2); color: var(--success-color); padding: 4px 8px; font-size: 11px; margin: 0;">
-                                <i class="fa-solid fa-check"></i> Approve
-                            </button>
-                            <button class="action-btn danger" onclick="openRejectClaimModal(${c.id})" style="background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: var(--danger-color); padding: 4px 8px; font-size: 11px; margin: 0;">
-                                <i class="fa-solid fa-ban"></i> Reject
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    actionsCol = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Processed</span>`;
-                }
-                
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${dateStr}</td>
-                    <td>
-                        <div style="font-weight: 600;">${userName}</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">${c.email}</div>
-                    </td>
-                    <td style="font-weight: 700;">${packageTitle}</td>
-                    <td style="color: var(--success-color); font-weight: 600;">Rs. ${c.amount.toFixed(2)}</td>
-                    <td style="font-family: monospace; font-size: 12px; font-weight: 600;">${c.transaction_id}</td>
-                    <td>${receiptCol}</td>
-                    <td><span class="badge ${statusBadgeClass}">${c.status.toUpperCase()}</span></td>
-                    <td style="font-size: 11px; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${c.notes || ''}">${c.notes || '-'}</td>
-                    <td>${actionsCol}</td>
-                `;
-                tableBody.appendChild(row);
-            });
+            renderAdminClaimsTable();
         }
     } catch(e) {
         console.error("Failed to load claims roster:", e);
+        if (window.ErrorBoundary && tableBody) {
+            window.ErrorBoundary.render(tableBody.parentElement, {
+                title: "Failed to load payment claims",
+                message: "Unable to retrieve payment claims roster.",
+                onRetry: () => loadAdminClaims(true)
+            });
+        }
     }
+}
+
+function renderAdminClaimsTable() {
+    const tableBody = document.querySelector("#admin-page-claims #claims-table-body");
+    if (!tableBody) return;
+    tableBody.innerHTML = "";
+    
+    if (claimsCached.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">No payment verification claims found.</td></tr>`;
+        return;
+    }
+    
+    claimsCached.forEach(c => {
+        const dateStr = new Date(c.created_at).toLocaleDateString();
+        const userName = `${c.first_name || '-'} ${c.last_name || ''}`.trim();
+        
+        const parts = c.pricing_id.split('_');
+        const slots = parts[0].replace("pc", "");
+        const term = parts[1];
+        const packageTitle = `${slots} PC ${term.charAt(0).toUpperCase() + term.slice(1)}`;
+        
+        let statusBadgeClass = "warning";
+        if (c.status === 'approved') statusBadgeClass = "success";
+        if (c.status === 'rejected') statusBadgeClass = "danger";
+        
+        let receiptCol = `<span style="color: var(--text-muted); font-style: italic;">None</span>`;
+        if (c.receipt_image) {
+            receiptCol = `
+                <button class="action-btn" data-tooltip="View payment proof screenshot" data-tooltip-placement="top" onclick="viewReceiptImage(${c.id})" style="padding: 4px 8px; font-size: 11px; margin: 0;">
+                    <i class="fa-solid fa-image"></i> View Receipt
+                </button>
+            `;
+        }
+        
+        let actionsCol = "";
+        if (c.status === 'pending') {
+            actionsCol = `
+                <div style="display: flex; gap: 6px;">
+                    <button class="action-btn" id="btn-approve-${c.id}" data-tooltip="Approve subscription payment claim" data-tooltip-placement="top" onclick="approvePaymentClaim(${c.id})" style="background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2); color: var(--success-color); padding: 4px 8px; font-size: 11px; margin: 0;">
+                        <i class="fa-solid fa-check"></i> Approve
+                    </button>
+                    <button class="action-btn danger" id="btn-reject-${c.id}" data-tooltip="Reject payment claim with reason" data-tooltip-placement="top" onclick="openRejectClaimModal(${c.id})" style="background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: var(--danger-color); padding: 4px 8px; font-size: 11px; margin: 0;">
+                        <i class="fa-solid fa-ban"></i> Reject
+                    </button>
+                </div>
+            `;
+        } else {
+            actionsCol = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Processed</span>`;
+        }
+        
+        const row = document.createElement("tr");
+        row.id = `claim-row-${c.id}`;
+        row.innerHTML = `
+            <td>${dateStr}</td>
+            <td>
+                <div style="font-weight: 600;">${userName}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${c.email}</div>
+            </td>
+            <td style="font-weight: 700;">${packageTitle}</td>
+            <td style="color: var(--success-color); font-weight: 600;">Rs. ${c.amount.toFixed(2)}</td>
+            <td style="font-family: monospace; font-size: 12px; font-weight: 600;">${c.transaction_id}</td>
+            <td>${receiptCol}</td>
+            <td><span class="badge ${statusBadgeClass}" id="claim-badge-${c.id}">${c.status.toUpperCase()}</span></td>
+            <td style="font-size: 11px; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${c.notes || ''}">${c.notes || '-'}</td>
+            <td id="claim-actions-${c.id}">${actionsCol}</td>
+        `;
+        tableBody.appendChild(row);
+    });
 }
 
 async function approvePaymentClaim(claimId) {
@@ -1056,6 +1111,25 @@ async function approvePaymentClaim(claimId) {
     const confirmApprove = confirm(`Confirm payment approval for user: ${claim.email}?\nPlan: ${claim.pricing_id}\nAmount: Rs. ${claim.amount.toFixed(2)}\nTID: ${claim.transaction_id}`);
     if (!confirmApprove) return;
     
+    // OPTIMISTIC UI: Update status badge and actions instantly
+    const previousStatus = claim.status;
+    claim.status = 'approved';
+    
+    const badge = document.getElementById(`claim-badge-${claimId}`);
+    const actionsCell = document.getElementById(`claim-actions-${claimId}`);
+    
+    if (badge) {
+        badge.className = "badge success";
+        badge.innerText = "APPROVED";
+    }
+    if (actionsCell) {
+        actionsCell.innerHTML = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Processed</span>`;
+    }
+    
+    if (window.showToast) {
+        window.showToast(`Payment approved for ${claim.email}`, "success");
+    }
+
     try {
         const response = await fetch(`${BACKEND_URL}/api/admin/payments/claims/approve`, {
             method: "POST",
@@ -1068,15 +1142,34 @@ async function approvePaymentClaim(claimId) {
         
         const data = await response.json();
         if (data.success) {
-            alert(data.message);
-            await loadAdminClaims();
+            if (window.ApiCache) {
+                window.ApiCache.invalidate("admin_claims_");
+                window.ApiCache.invalidate("admin_users_");
+            }
+            loadAdminClaims(true);
+            loadUsers(true);
         } else {
-            alert(data.error || "Approval failed.");
+            // ROLLBACK
+            claim.status = previousStatus;
+            renderAdminClaimsTable();
+            if (window.showToast) {
+                window.showToast(data.error || "Approval failed. Reverted state.", "danger");
+            } else {
+                alert(data.error || "Approval failed.");
+            }
         }
     } catch(e) {
-        alert("Failed to connect to server.");
+        // ROLLBACK
+        claim.status = previousStatus;
+        renderAdminClaimsTable();
+        if (window.showToast) {
+            window.showToast("Server connection lost. Reverted approval state.", "danger");
+        } else {
+            alert("Failed to connect to server.");
+        }
     }
 }
+
 
 function openRejectClaimModal(claimId) {
     document.getElementById("reject-claim-id").value = claimId;

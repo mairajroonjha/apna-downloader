@@ -409,6 +409,72 @@ class YtDlpDownloader extends EventEmitter {
         });
     }
 
+    async getInfo(urlToProbe) {
+        await this.ensureBinary();
+        const targetUrl = urlToProbe || this.url;
+        return new Promise((resolve, reject) => {
+            const args = [
+                targetUrl,
+                '--dump-single-json',
+                '--no-warnings',
+                '-J'
+            ];
+            
+            const spawnEnv = { ...process.env };
+            const pathKey = process.platform === 'win32' ? 'Path' : 'PATH';
+            spawnEnv[pathKey] = `${this.binDir}${path.delimiter}${spawnEnv[pathKey] || ''}`;
+            
+            console.log('[YtDlpDownloader] Probing video info for:', targetUrl);
+            const child = spawn(this.binPath, args, { env: spawnEnv });
+            let stdoutData = '';
+            
+            child.stdout.on('data', chunk => stdoutData += chunk.toString());
+            
+            child.on('close', (code) => {
+                if (code === 0) {
+                    try {
+                        const parsed = JSON.parse(stdoutData);
+                        let totalSize = parsed.filesize || parsed.filesize_approx || 0;
+                        
+                        if (!totalSize && parsed.formats) {
+                            const videoFormats = parsed.formats.filter(f => f.vcodec !== 'none');
+                            const audioFormats = parsed.formats.filter(f => f.acodec !== 'none' && f.vcodec === 'none');
+                            
+                            videoFormats.sort((a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
+                            audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
+                            
+                            const bestVideo = videoFormats[0];
+                            const bestAudio = audioFormats[0];
+                            
+                            const vSize = bestVideo ? (bestVideo.filesize || bestVideo.filesize_approx || 0) : 0;
+                            const aSize = bestAudio ? (bestAudio.filesize || bestAudio.filesize_approx || 0) : 0;
+                            totalSize = vSize + aSize;
+                            
+                            if (!totalSize && parsed.duration) {
+                                const tbr = (bestVideo ? (bestVideo.tbr || 1800) : 1800) + (bestAudio ? (bestAudio.abr || 128) : 128);
+                                totalSize = Math.round(parsed.duration * (tbr * 1000 / 8));
+                            }
+                        }
+                        
+                        resolve({
+                            filesize: totalSize,
+                            filesize_approx: totalSize,
+                            title: parsed.title || parsed.fulltitle || 'video'
+                        });
+                    } catch (e) {
+                        console.error('[YtDlpDownloader] Error parsing probe JSON:', e);
+                        reject(e);
+                    }
+                } else {
+                    reject(new Error(`yt-dlp exited with code ${code}`));
+                }
+            });
+            
+            child.on('error', (err) => reject(err));
+        });
+    }
+
+
     async start(resume = false) {
         if (this.status === 'downloading') return;
         this.isKilled = false;

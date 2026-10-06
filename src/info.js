@@ -251,8 +251,9 @@
     }
 
     async function checkAndFetchMediaSize(url) {
-        currentSizeText = "Loading...";
-        updateSidePanel(selectCategory.value, currentSizeText);
+        if (sideFileSize) {
+            sideFileSize.innerHTML = `<span class="skeleton skeleton-badge" style="width:75px; height:18px;"></span>`;
+        }
         
         try {
             const res = await window.api.fetchMediaSize(url, grabQuality, { cookies: grabCookies, referer: grabReferer, userAgent: grabUserAgent });
@@ -289,14 +290,15 @@
                     }
                 }
             } else {
-                currentSizeText = isStream ? "Streaming" : "Unknown";
+                currentSizeText = isStream ? "Media Stream" : "Unknown";
                 updateSidePanel(selectCategory.value, currentSizeText);
             }
         } catch (e) {
-            currentSizeText = isStream ? "Streaming" : "Unknown";
+            currentSizeText = isStream ? "Media Stream" : "Unknown";
             updateSidePanel(selectCategory.value, currentSizeText);
         }
     }
+
 
     // Common Utilities
     function isStreamUrl(url) {

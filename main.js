@@ -1945,6 +1945,14 @@ async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
                 let contentLength = res.headers['content-length'];
                 let size = contentLength ? parseInt(contentLength, 10) : 0;
                 
+                if (!size && res.headers['content-range']) {
+                    const rangeMatch = res.headers['content-range'].match(/\/(\d+)/);
+                    if (rangeMatch && rangeMatch[1]) {
+                        size = parseInt(rangeMatch[1], 10);
+                    }
+                }
+
+                
                 let filename = path.basename(parsedUrl.pathname);
                 const disposition = res.headers['content-disposition'];
                 if (disposition) {

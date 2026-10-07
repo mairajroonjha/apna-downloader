@@ -70,17 +70,21 @@ async function handleAuthSubmit(event) {
         : { email, password };
 
     try {
-        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(bodyPayload)
-        });
+        let authResult;
+        if (window.api && window.api.submitAuth) {
+            authResult = await window.api.submitAuth(mode, bodyPayload);
+        } else {
+            const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bodyPayload)
+            });
+            const data = await response.json();
+            authResult = { ok: response.ok, status: response.status, data };
+        }
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
+        const data = authResult.data || {};
+        if (authResult.ok && data.success) {
             if (mode === "register") {
                 // Show success banner and toggle back to login mode
                 showError(data.message || "Registration completed successfully! You can now log in.", true);
@@ -96,7 +100,7 @@ async function handleAuthSubmit(event) {
                 await window.api.saveAuthToken({ token: data.token, email: data.email });
             }
         } else {
-            showError(data.error || "Authentication failed. Please check credentials.");
+            showError(data.error || authResult.error || "Authentication failed. Please check credentials.");
         }
     } catch (e) {
         console.error("Auth request failed:", e);

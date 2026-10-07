@@ -91,54 +91,63 @@ let licenseStatus = {
 
 const BACKEND_URL = "https://apna-downloader-backend.mirajroonjha.workers.dev"; // Cloudflare Workers subdomain
 
-async function safeFetch(url, options = {}, retries = 2) {
-    for (let attempt = 0; attempt <= retries; attempt++) {
+async function safeFetch(targetUrl, options = {}, retries = 2) {
+    const fallbackIps = ['104.21.60.77', '172.67.180.120', '104.16.249.249', '104.18.2.161'];
+    
+    // Attempt 1: Standard fetch with 4-second AbortController timeout
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(targetUrl, { ...options, signal: controller.signal });
+        clearTimeout(timer);
+        return res;
+    } catch (e) {
+        console.warn('[safeFetch] Default fetch failed/timed out, switching to unblocked Cloudflare IP pool:', e.message);
+    }
+
+    // Attempt 2: Fallback via unblocked Cloudflare Edge IPs using native https module
+    const https = require('https');
+    const urlMod = require('url');
+    const parsed = urlMod.parse(targetUrl);
+    const method = (options.method || 'GET').toUpperCase();
+    const reqHeaders = { ...(options.headers || {}), 'Host': parsed.hostname };
+    const bodyData = options.body || null;
+
+    for (const ip of fallbackIps) {
         try {
-            const response = await fetch(url, options);
-            return response;
-        } catch (err) {
-            if (attempt === retries) {
-                return new Promise((resolve, reject) => {
-                    try {
-                        const https = require('https');
-                        const urlMod = require('url');
-                        const parsed = urlMod.parse(url);
-                        const method = (options.method || 'GET').toUpperCase();
-                        const headers = options.headers || {};
-                        const bodyData = options.body || null;
-
-                        const req = https.request({
-                            hostname: parsed.hostname,
-                            port: parsed.port || 443,
-                            path: parsed.path,
-                            method: method,
-                            headers: headers,
-                            timeout: 10000
-                        }, (res) => {
-                            let data = '';
-                            res.on('data', chunk => data += chunk);
-                            res.on('end', () => {
-                                resolve({
-                                    ok: res.statusCode >= 200 && res.statusCode < 300,
-                                    status: res.statusCode,
-                                    json: async () => JSON.parse(data),
-                                    text: async () => data
-                                });
-                            });
-                        });
-
-                        req.on('error', (e) => reject(e));
-                        req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
-                        if (bodyData) req.write(bodyData);
-                        req.end();
-                    } catch (e) {
-                        reject(e);
-                    }
+            const resData = await new Promise((resolve, reject) => {
+                const req = https.request({
+                    hostname: ip,
+                    port: 443,
+                    path: parsed.path,
+                    method: method,
+                    headers: reqHeaders,
+                    servername: parsed.hostname,
+                    timeout: 4000
+                }, (res) => {
+                    let body = '';
+                    res.on('data', chunk => body += chunk);
+                    res.on('end', () => resolve({ statusCode: res.statusCode, body }));
                 });
-            }
-            await new Promise(r => setTimeout(r, 500));
+
+                req.on('error', err => reject(err));
+                req.on('timeout', () => { req.destroy(); reject(new Error('IP Timeout')); });
+                if (bodyData) req.write(bodyData);
+                req.end();
+            });
+
+            return {
+                ok: resData.statusCode >= 200 && resData.statusCode < 300,
+                status: resData.statusCode,
+                json: async () => JSON.parse(resData.body),
+                text: async () => resData.body
+            };
+        } catch (ipErr) {
+            console.warn(`[safeFetch] IP ${ip} failed:`, ipErr.message);
         }
     }
+
+    throw new Error('Could not connect to authentication server across all network routes.');
 }
 
 async function verifyLicenseStatus() {
@@ -1206,6 +1215,24 @@ ipcMain.handle('reset-settings', () => {
         mainWindow.webContents.send('settings-updated', settings);
     }
     return settings;
+});
+
+ipcMain.handle('submit-auth', async (event, { mode, payload }) => {
+    const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    try {
+        const response = await safeFetch(`${BACKEND_URL}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        return { ok: response.ok, status: response.status, data };
+    } catch (e) {
+        console.error('Submit auth failed:', e);
+        return { ok: false, status: 500, error: 'Could not connect to authentication server. Please check internet connection.' };
+    }
 });
 
 ipcMain.handle('save-auth-token', (event, { token, email }) => {

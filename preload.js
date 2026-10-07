@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('api', {
     fetchMediaSize: (url, quality, options) => ipcRenderer.invoke('fetch-media-size', { url, quality, ...(options || {}) }),
     openInfoWindow: (data) => ipcRenderer.invoke('open-info-window', data),
     resetSettings: () => ipcRenderer.invoke('reset-settings'),
+    submitAuth: (mode, payload) => ipcRenderer.invoke('submit-auth', { mode, payload }),
     saveAuthToken: (data) => ipcRenderer.invoke('save-auth-token', data),
     logoutUser: () => ipcRenderer.invoke('logout-user'),
     openExternal: (url) => ipcRenderer.invoke('open-external', url),

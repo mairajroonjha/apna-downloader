@@ -91,6 +91,56 @@ let licenseStatus = {
 
 const BACKEND_URL = "https://apna-downloader-backend.mirajroonjha.workers.dev"; // Cloudflare Workers subdomain
 
+async function safeFetch(url, options = {}, retries = 2) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const response = await fetch(url, options);
+            return response;
+        } catch (err) {
+            if (attempt === retries) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const https = require('https');
+                        const urlMod = require('url');
+                        const parsed = urlMod.parse(url);
+                        const method = (options.method || 'GET').toUpperCase();
+                        const headers = options.headers || {};
+                        const bodyData = options.body || null;
+
+                        const req = https.request({
+                            hostname: parsed.hostname,
+                            port: parsed.port || 443,
+                            path: parsed.path,
+                            method: method,
+                            headers: headers,
+                            timeout: 10000
+                        }, (res) => {
+                            let data = '';
+                            res.on('data', chunk => data += chunk);
+                            res.on('end', () => {
+                                resolve({
+                                    ok: res.statusCode >= 200 && res.statusCode < 300,
+                                    status: res.statusCode,
+                                    json: async () => JSON.parse(data),
+                                    text: async () => data
+                                });
+                            });
+                        });
+
+                        req.on('error', (e) => reject(e));
+                        req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
+                        if (bodyData) req.write(bodyData);
+                        req.end();
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }
+            await new Promise(r => setTimeout(r, 500));
+        }
+    }
+}
+
 async function verifyLicenseStatus() {
     if (!settings.authToken) return { success: false, status: 'unauthorized', message: 'Auth token missing' };
     if (!settings.deviceId) {
@@ -101,7 +151,7 @@ async function verifyLicenseStatus() {
 
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/license/verify`, {
+        const response = await safeFetch(`${BACKEND_URL}/api/license/verify`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1195,7 +1245,7 @@ ipcMain.handle('get-subscription-details', async () => {
     if (!settings.authToken) return { success: false, error: 'Not logged in' };
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/portal/subscription`, {
+        const response = await safeFetch(`${BACKEND_URL}/api/portal/subscription`, {
             headers: {
                 'Authorization': `Bearer ${settings.authToken}`
             }
@@ -1218,7 +1268,7 @@ ipcMain.handle('unbind-device-slot', async (event, deviceId) => {
     if (!settings.authToken) return { success: false, error: 'Not logged in' };
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/portal/device/unbind`, {
+        const response = await safeFetch(`${BACKEND_URL}/api/portal/device/unbind`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1241,7 +1291,7 @@ ipcMain.handle('activate-free-trial', async () => {
     if (!settings.authToken) return { success: false, error: 'Not logged in' };
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/portal/start-trial`, {
+        const response = await safeFetch(`${BACKEND_URL}/api/portal/start-trial`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${settings.authToken}`
@@ -1299,7 +1349,7 @@ ipcMain.handle('start-google-auth', async () => {
                     server.close();
 
                     try {
-                        const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
+                        const backendResponse = await safeFetch(`${BACKEND_URL}/api/auth/google`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ code })

@@ -2070,13 +2070,26 @@ function isStreamUrl(urlText) {
         return (
             hostname.includes('youtube.com') ||
             hostname.includes('youtu.be') ||
-            hostname.includes('vimeo.com') ||
             hostname.includes('facebook.com') ||
             hostname.includes('fb.watch') ||
+            hostname.includes('fb.com') ||
+            hostname.includes('instagram.com') ||
+            hostname.includes('instagr.am') ||
+            hostname.includes('tiktok.com') ||
             hostname.includes('twitter.com') ||
             hostname.includes('x.com') ||
-            hostname.includes('instagram.com') ||
-            hostname.includes('tiktok.com')
+            hostname.includes('pinterest.com') ||
+            hostname.includes('pin.it') ||
+            hostname.includes('reddit.com') ||
+            hostname.includes('v.redd.it') ||
+            hostname.includes('vimeo.com') ||
+            hostname.includes('dailymotion.com') ||
+            hostname.includes('dai.ly') ||
+            hostname.includes('twitch.tv') ||
+            hostname.includes('soundcloud.com') ||
+            hostname.includes('streamable.com') ||
+            hostname.includes('vk.com') ||
+            hostname.includes('bilibili.com')
         );
     } catch (e) {
         return false;

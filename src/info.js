@@ -380,7 +380,17 @@
     // Common Utilities
     function isStreamUrl(url) {
         if (!url) return false;
-        return url.includes('youtube.com/') || url.includes('youtu.be/') || url.includes('vimeo.com/') || url.includes('soundcloud.com/');
+        const u = url.toLowerCase();
+        return (
+            u.includes('youtube.com/') || u.includes('youtu.be/') ||
+            u.includes('facebook.com/') || u.includes('fb.watch/') || u.includes('fb.com/') ||
+            u.includes('instagram.com/') || u.includes('instagr.am/') ||
+            u.includes('tiktok.com/') || u.includes('twitter.com/') || u.includes('x.com/') ||
+            u.includes('pinterest.com/') || u.includes('pin.it/') ||
+            u.includes('reddit.com/') || u.includes('v.redd.it/') ||
+            u.includes('vimeo.com/') || u.includes('dailymotion.com/') || u.includes('dai.ly/') ||
+            u.includes('twitch.tv/') || u.includes('soundcloud.com/')
+        );
     }
 
     function getFileExtension(str) {

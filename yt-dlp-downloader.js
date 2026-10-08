@@ -552,24 +552,24 @@ class YtDlpDownloader extends EventEmitter {
                     '--audio-quality', '0'
                 );
             } else if (this.quality === '2160p') {
-                args.push('-f', 'bestvideo[height<=2160]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=2160]+bestaudio/bestvideo[height<=2160]/best[height<=2160]/best');
             } else if (this.quality === '1440p') {
-                args.push('-f', 'bestvideo[height<=1440]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=1440]+bestaudio/bestvideo[height<=1440]/best[height<=1440]/best');
             } else if (this.quality === '1080p') {
-                args.push('-f', 'bestvideo[height<=1080]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=1080]+bestaudio/bestvideo[height<=1080]/best[height<=1080]/best');
             } else if (this.quality === '720p') {
-                args.push('-f', 'bestvideo[height<=720]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=720]+bestaudio/bestvideo[height<=720]/best[height<=720]/best');
             } else if (this.quality === '480p') {
-                args.push('-f', 'bestvideo[height<=480]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=480]+bestaudio/bestvideo[height<=480]/best[height<=480]/best');
             } else if (this.quality === '360p') {
-                args.push('-f', 'bestvideo[height<=360]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=360]+bestaudio/bestvideo[height<=360]/best[height<=360]/best');
             } else if (this.quality === '240p') {
-                args.push('-f', 'bestvideo[height<=240]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=240]+bestaudio/bestvideo[height<=240]/best[height<=240]/best');
             } else if (this.quality === '144p') {
-                args.push('-f', 'bestvideo[height<=144]+bestaudio/best');
+                args.push('-f', 'bestvideo[height<=144]+bestaudio/bestvideo[height<=144]/best[height<=144]/best');
             } else {
-                // Default: safest merged format
-                args.push('-f', 'bestvideo+bestaudio/best');
+                // Default: safest merged format with single-stream fallbacks
+                args.push('-f', 'bestvideo+bestaudio/bestvideo/best');
             }
 
             if (this.quality !== 'subtitles' && this.downloadSubtitles) {
@@ -594,12 +594,21 @@ class YtDlpDownloader extends EventEmitter {
                 '--newline',
                 '--no-playlist',
                 '--ignore-errors',
+                '--no-check-certificates',
                 '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 '--extractor-args', 'youtube:player_client=android,web'
             );
 
             if (this.referer) {
                 args.push('--referer', this.referer);
+            } else if (this.url.includes('facebook.com') || this.url.includes('fb.watch') || this.url.includes('fb.com')) {
+                args.push('--referer', 'https://www.facebook.com/');
+            } else if (this.url.includes('instagram.com')) {
+                args.push('--referer', 'https://www.instagram.com/');
+            } else if (this.url.includes('tiktok.com')) {
+                args.push('--referer', 'https://www.tiktok.com/');
+            } else if (this.url.includes('twitter.com') || this.url.includes('x.com')) {
+                args.push('--referer', 'https://x.com/');
             }
 
             if (this.rateLimit) {

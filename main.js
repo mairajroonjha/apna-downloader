@@ -2283,6 +2283,17 @@ async function startDownload(download, isResume = false) {
     updateActiveDownloadLimits();
 
     engine.on('status', (status) => {
+        if (status === 'failed' && (download.engine === 'ytdlp' || isStreamUrl(download.url)) && !download._hasRetriedEngine) {
+            console.warn(`[startDownload] Stream engine failed for ${download.url}. Failing over to native HTTP DownloadEngine...`);
+            download._hasRetriedEngine = true;
+            download.engine = 'native';
+            if (activeEngines[download.id]) {
+                delete activeEngines[download.id];
+            }
+            startDownload(download, false);
+            return;
+        }
+
         download.status = status;
         saveDownloads();
         

@@ -351,6 +351,65 @@ class YtDlpDownloader extends EventEmitter {
         console.log('ffmpeg and ffprobe successfully installed!');
     }
 
+    calculateParsedSizes(parsed, qual) {
+        let totalSize = parsed.filesize || parsed.filesize_approx || 0;
+        let vSize = 0;
+        let aSize = 0;
+
+        if (!totalSize && parsed.requested_formats && Array.isArray(parsed.requested_formats)) {
+            for (const rf of parsed.requested_formats) {
+                const rfSize = rf.filesize || rf.filesize_approx || 0;
+                totalSize += rfSize;
+                if (rf.vcodec !== 'none') vSize += rfSize;
+                else if (rf.acodec !== 'none') aSize += rfSize;
+            }
+        }
+
+        if (!totalSize && parsed.formats && Array.isArray(parsed.formats)) {
+            const isAudioOnly = qual === 'audio' || qual === 'mp3_320' || qual === 'mp3_192' || qual === 'm4a' || qual === 'wav';
+            const targetHeight = qual ? parseInt(qual.replace('p', ''), 10) : null;
+
+            const videoFormats = parsed.formats.filter(f => f.vcodec !== 'none');
+            const audioFormats = parsed.formats.filter(f => f.acodec !== 'none' && f.vcodec === 'none');
+
+            if (isAudioOnly) {
+                audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
+                const bestAudio = audioFormats[0];
+                if (bestAudio) {
+                    aSize = bestAudio.filesize || bestAudio.filesize_approx || 0;
+                    if (!aSize && parsed.duration) {
+                        const abr = bestAudio.abr || 192;
+                        aSize = Math.round(parsed.duration * (abr * 1000 / 8));
+                    }
+                }
+                if (!aSize && parsed.duration) {
+                    aSize = Math.round(parsed.duration * (192 * 1000 / 8));
+                }
+                totalSize = aSize;
+            } else {
+                let matchingVideo = videoFormats;
+                if (targetHeight && !isNaN(targetHeight)) {
+                    matchingVideo = videoFormats.filter(f => f.height && f.height <= targetHeight);
+                }
+                matchingVideo.sort((a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
+                audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
+
+                const bestVideo = matchingVideo[0] || videoFormats[0];
+                const bestAudio = audioFormats[0];
+
+                vSize = bestVideo ? (bestVideo.filesize || bestVideo.filesize_approx || (parsed.duration ? Math.round(parsed.duration * ((bestVideo.tbr || (targetHeight >= 1080 ? 3500 : (targetHeight >= 720 ? 1800 : 800))) * 1000 / 8)) : 0)) : 0;
+                aSize = bestAudio ? (bestAudio.filesize || bestAudio.filesize_approx || (parsed.duration ? Math.round(parsed.duration * ((bestAudio.abr || 128) * 1000 / 8)) : 0)) : 0;
+                totalSize = vSize + aSize;
+            }
+        }
+
+        if (!totalSize && parsed.duration) {
+            totalSize = Math.round(parsed.duration * (1928 * 1000 / 8));
+        }
+
+        return { totalSize, videoSize: vSize, audioSize: aSize, title: parsed.title || parsed.fulltitle || 'video' };
+    }
+
     async getFormatSizes() {
         return new Promise((resolve) => {
             const args = [
@@ -375,33 +434,8 @@ class YtDlpDownloader extends EventEmitter {
                 if (code === 0) {
                     try {
                         const parsed = JSON.parse(stdoutData);
-                        let vSize = 0;
-                        let aSize = 0;
-                        
-                        if (parsed.formats) {
-                            const targetHeight = this.quality ? parseInt(this.quality.replace('p', ''), 10) : null;
-                            const videoFormats = parsed.formats.filter(f => f.vcodec !== 'none' && f.acodec === 'none');
-                            const audioFormats = parsed.formats.filter(f => f.acodec !== 'none' && f.vcodec === 'none');
-                            
-                            let matchingVideo = videoFormats;
-                            if (targetHeight && !isNaN(targetHeight)) {
-                                matchingVideo = videoFormats.filter(f => f.height && f.height <= targetHeight);
-                            }
-                            
-                            matchingVideo.sort((a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
-                            audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
-                            
-                            const bestVideo = matchingVideo[0] || videoFormats[0];
-                            const bestAudio = audioFormats[0];
-                            
-                            if (bestVideo) {
-                                vSize = bestVideo.filesize || bestVideo.filesize_approx || 0;
-                            }
-                            if (bestAudio) {
-                                aSize = bestAudio.filesize || bestAudio.filesize_approx || 0;
-                            }
-                        }
-                        resolve({ videoSize: vSize, audioSize: aSize });
+                        const sizes = this.calculateParsedSizes(parsed, this.quality);
+                        resolve({ videoSize: sizes.videoSize, audioSize: sizes.audioSize, totalSize: sizes.totalSize });
                     } catch (e) {
                         console.error('[YtDlpDownloader] Error parsing format JSON:', e);
                         resolve(null);
@@ -442,59 +476,13 @@ class YtDlpDownloader extends EventEmitter {
                 if (code === 0) {
                     try {
                         const parsed = JSON.parse(stdoutData);
-                        let totalSize = parsed.filesize || parsed.filesize_approx || 0;
-                        
-                        if (!totalSize && parsed.requested_formats && Array.isArray(parsed.requested_formats)) {
-                            for (const rf of parsed.requested_formats) {
-                                totalSize += (rf.filesize || rf.filesize_approx || 0);
-                            }
-                        }
-
-                        if (!totalSize && parsed.formats && Array.isArray(parsed.formats)) {
-                            const isAudioOnly = qual === 'audio' || qual === 'mp3_320' || qual === 'mp3_192' || qual === 'm4a' || qual === 'wav';
-                            const targetHeight = qual ? parseInt(qual.replace('p', ''), 10) : null;
-
-                            const videoFormats = parsed.formats.filter(f => f.vcodec !== 'none');
-                            const audioFormats = parsed.formats.filter(f => f.acodec !== 'none' && f.vcodec === 'none');
-
-                            if (isAudioOnly) {
-                                audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
-                                const bestAudio = audioFormats[0];
-                                if (bestAudio) {
-                                    totalSize = bestAudio.filesize || bestAudio.filesize_approx || 0;
-                                    if (!totalSize && parsed.duration) {
-                                        const abr = bestAudio.abr || 192;
-                                        totalSize = Math.round(parsed.duration * (abr * 1000 / 8));
-                                    }
-                                }
-                                if (!totalSize && parsed.duration) {
-                                    totalSize = Math.round(parsed.duration * (192 * 1000 / 8));
-                                }
-                            } else {
-                                let matchingVideo = videoFormats;
-                                if (targetHeight && !isNaN(targetHeight)) {
-                                    matchingVideo = videoFormats.filter(f => f.height && f.height <= targetHeight);
-                                }
-                                matchingVideo.sort((a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
-                                audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
-
-                                const bestVideo = matchingVideo[0] || videoFormats[0];
-                                const bestAudio = audioFormats[0];
-
-                                const vSize = bestVideo ? (bestVideo.filesize || bestVideo.filesize_approx || (parsed.duration ? Math.round(parsed.duration * ((bestVideo.tbr || (targetHeight >= 1080 ? 3500 : (targetHeight >= 720 ? 1800 : 800))) * 1000 / 8)) : 0)) : 0;
-                                const aSize = bestAudio ? (bestAudio.filesize || bestAudio.filesize_approx || (parsed.duration ? Math.round(parsed.duration * ((bestAudio.abr || 128) * 1000 / 8)) : 0)) : 0;
-                                totalSize = vSize + aSize;
-                            }
-                        }
-
-                        if (!totalSize && parsed.duration) {
-                            totalSize = Math.round(parsed.duration * (1928 * 1000 / 8));
-                        }
-                        
+                        const sizes = this.calculateParsedSizes(parsed, qual);
                         resolve({
-                            filesize: totalSize,
-                            filesize_approx: totalSize,
-                            title: parsed.title || parsed.fulltitle || 'video'
+                            filesize: sizes.totalSize,
+                            filesize_approx: sizes.totalSize,
+                            videoSize: sizes.videoSize,
+                            audioSize: sizes.audioSize,
+                            title: sizes.title
                         });
                     } catch (e) {
                         console.error('[YtDlpDownloader] Error parsing probe JSON:', e);
@@ -805,8 +793,13 @@ class YtDlpDownloader extends EventEmitter {
                 
                 if (this.quality !== 'audio' && !this.isDownloadingAudioTrack) {
                     this.videoSize = currentStreamSize;
-                    // Estimate combined size (video accounts for 85% of total size visually)
-                    this.totalSize = Math.round(this.videoSize / 0.85);
+                    if (this.audioSize > 0) {
+                        this.totalSize = this.videoSize + this.audioSize;
+                    } else if (this.totalSize > 0 && this.totalSize >= this.videoSize) {
+                        // Keep pre-calculated totalSize consistent with pre-download estimate
+                    } else {
+                        this.totalSize = Math.round(this.videoSize * 1.08);
+                    }
                     this.downloaded = Math.round((currentStreamPercent / 100) * this.videoSize);
                 } else if (this.quality !== 'audio' && this.isDownloadingAudioTrack) {
                     this.audioSize = currentStreamSize;

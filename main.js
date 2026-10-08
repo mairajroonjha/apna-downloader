@@ -1503,7 +1503,7 @@ ipcMain.handle('get-downloads', () => {
 });
 
 // 3. Add Download
-ipcMain.handle('add-download', async (event, { url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles, cookies }) => {
+ipcMain.handle('add-download', async (event, { url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles, cookies, totalSize }) => {
     let finalSavePath = savePath;
     if (url.startsWith('data:')) {
         const matches = url.match(/^data:([^;]+);/);
@@ -1529,8 +1529,8 @@ ipcMain.handle('add-download', async (event, { url, savePath, numConnections, qu
     }
     const downloadId = Date.now().toString();
 
-    let initialSize = 0;
-    if (url.startsWith('data:')) {
+    let initialSize = totalSize || 0;
+    if (!initialSize && url.startsWith('data:')) {
         const base64Idx = url.indexOf(';base64,');
         if (base64Idx !== -1) {
             const base64Str = url.substring(base64Idx + 8);

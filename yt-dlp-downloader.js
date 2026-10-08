@@ -505,14 +505,24 @@ class YtDlpDownloader extends EventEmitter {
         try {
             await this.ensureBinary();
 
+            // If totalSize is pre-calculated from modal or info window, initialize videoSize and audioSize proportionally
+            if (this.totalSize > 0 && !this.videoSize) {
+                if (this.quality === 'audio' || this.quality === 'mp3_320' || this.quality === 'mp3_192') {
+                    this.audioSize = this.totalSize;
+                } else {
+                    this.videoSize = Math.round(this.totalSize * 0.90);
+                    this.audioSize = Math.round(this.totalSize * 0.10);
+                }
+            }
+
             // Fetch exact formats size at start if not set, to make total size display instantly
-            if (this.url.startsWith('http') && !this.videoSize && !this.audioSize && (this.url.includes('youtube.com') || this.url.includes('youtu.be')) && this.quality !== 'audio') {
+            if (this.url.startsWith('http') && !this.totalSize) {
                 try {
                     const sizes = await this.getFormatSizes();
-                    if (sizes && sizes.videoSize > 0) {
+                    if (sizes && sizes.totalSize > 0) {
                         this.videoSize = sizes.videoSize;
                         this.audioSize = sizes.audioSize;
-                        this.totalSize = this.videoSize + this.audioSize;
+                        this.totalSize = sizes.totalSize;
                     }
                 } catch (e) {
                     console.error('[YtDlpDownloader] Failed to pre-fetch format sizes:', e);

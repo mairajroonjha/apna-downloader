@@ -30,6 +30,7 @@
     let appSettings = {};
     let defaultCategoryPaths = {};
     let currentSizeText = 'Unknown';
+    let fetchedSizeBytes = 0;
     let cleanFilename = '';
     let isStream = false;
 
@@ -268,6 +269,7 @@
         const threads = parseInt(connectionsCount.value, 10) || 8;
         const sub = chkDownloadSubtitles.checked;
 
+        const selectedQual = selectMediaQuality ? selectMediaQuality.value : grabQuality;
         try {
             btnAddStart.disabled = true;
             btnAddLater.disabled = true;
@@ -276,14 +278,15 @@
                 grabUrl,
                 savePath,
                 threads,
-                grabQuality,
+                selectedQual,
                 downloadLater,
                 grabReferer,
                 grabUserAgent,
                 grabEngine,
                 false, // silent
                 sub,
-                grabCookies
+                grabCookies,
+                fetchedSizeBytes
             );
             
             window.close();
@@ -335,6 +338,7 @@
         try {
             const res = await window.api.fetchMediaSize(url, qual, { cookies: grabCookies, referer: grabReferer, userAgent: grabUserAgent });
             if (res && res.success && res.size > 0) {
+                fetchedSizeBytes = res.size;
                 currentSizeText = formatBytes(res.size);
                 updateSidePanel(selectCategory.value, currentSizeText);
                 

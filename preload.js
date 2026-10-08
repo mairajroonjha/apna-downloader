@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('api', {
     selectFolder: () => ipcRenderer.invoke('select-folder'),
     getDefaultDownloadDirs: () => ipcRenderer.invoke('get-default-download-dirs'),
     getDownloads: () => ipcRenderer.invoke('get-downloads'),
-    addDownload: (url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles, cookies) => ipcRenderer.invoke('add-download', { url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles, cookies }),
+    addDownload: (url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles, cookies, totalSize) => ipcRenderer.invoke('add-download', { url, savePath, numConnections, quality, downloadLater, referer, userAgent, engine, silent, downloadSubtitles, cookies, totalSize }),
     pauseDownload: (id) => ipcRenderer.invoke('pause-download', id),
     resumeDownload: (id) => ipcRenderer.invoke('resume-download', id),
     cancelDownload: (id, deleteFile) => ipcRenderer.invoke('cancel-download', { id, deleteFile }),

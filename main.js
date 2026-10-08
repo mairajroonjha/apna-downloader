@@ -1986,9 +1986,9 @@ async function fetchMediaSizeHelper(url, quality, depth = 0, options = {}) {
     }
 
     if (isStreamUrl(url)) {
-        const dummy = new YtDlpDownloader(url, 'dummy-path');
+        const dummy = new YtDlpDownloader(url, 'dummy-path', { quality: quality });
         return new Promise((resolve) => {
-            dummy.getInfo(url).then(info => {
+            dummy.getInfo(url, quality).then(info => {
                 const calculatedSize = info ? (info.filesize || info.filesize_approx || 0) : 0;
                 resolve({ success: true, size: calculatedSize, title: (info && info.title) ? info.title : 'video' });
             }).catch((err) => {

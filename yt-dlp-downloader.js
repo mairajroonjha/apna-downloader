@@ -415,9 +415,11 @@ class YtDlpDownloader extends EventEmitter {
         });
     }
 
-    async getInfo(urlToProbe) {
+    async getInfo(urlToProbe, targetQuality = null) {
         await this.ensureBinary();
         const targetUrl = urlToProbe || this.url;
+        const qual = targetQuality || this.quality;
+
         return new Promise((resolve, reject) => {
             const args = [
                 targetUrl,
@@ -449,22 +451,39 @@ class YtDlpDownloader extends EventEmitter {
                         }
 
                         if (!totalSize && parsed.formats && Array.isArray(parsed.formats)) {
+                            const isAudioOnly = qual === 'audio' || qual === 'mp3_320' || qual === 'mp3_192' || qual === 'm4a' || qual === 'wav';
+                            const targetHeight = qual ? parseInt(qual.replace('p', ''), 10) : null;
+
                             const videoFormats = parsed.formats.filter(f => f.vcodec !== 'none');
                             const audioFormats = parsed.formats.filter(f => f.acodec !== 'none' && f.vcodec === 'none');
-                            
-                            videoFormats.sort((a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
-                            audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
-                            
-                            const bestVideo = videoFormats[0];
-                            const bestAudio = audioFormats[0];
-                            
-                            const vSize = bestVideo ? (bestVideo.filesize || bestVideo.filesize_approx || 0) : 0;
-                            const aSize = bestAudio ? (bestAudio.filesize || bestAudio.filesize_approx || 0) : 0;
-                            totalSize = vSize + aSize;
-                            
-                            if (!totalSize && parsed.duration) {
-                                const tbr = (bestVideo ? (bestVideo.tbr || 1800) : 1800) + (bestAudio ? (bestAudio.abr || 128) : 128);
-                                totalSize = Math.round(parsed.duration * (tbr * 1000 / 8));
+
+                            if (isAudioOnly) {
+                                audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
+                                const bestAudio = audioFormats[0];
+                                if (bestAudio) {
+                                    totalSize = bestAudio.filesize || bestAudio.filesize_approx || 0;
+                                    if (!totalSize && parsed.duration) {
+                                        const abr = bestAudio.abr || 192;
+                                        totalSize = Math.round(parsed.duration * (abr * 1000 / 8));
+                                    }
+                                }
+                                if (!totalSize && parsed.duration) {
+                                    totalSize = Math.round(parsed.duration * (192 * 1000 / 8));
+                                }
+                            } else {
+                                let matchingVideo = videoFormats;
+                                if (targetHeight && !isNaN(targetHeight)) {
+                                    matchingVideo = videoFormats.filter(f => f.height && f.height <= targetHeight);
+                                }
+                                matchingVideo.sort((a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
+                                audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
+
+                                const bestVideo = matchingVideo[0] || videoFormats[0];
+                                const bestAudio = audioFormats[0];
+
+                                const vSize = bestVideo ? (bestVideo.filesize || bestVideo.filesize_approx || (parsed.duration ? Math.round(parsed.duration * ((bestVideo.tbr || (targetHeight >= 1080 ? 3500 : (targetHeight >= 720 ? 1800 : 800))) * 1000 / 8)) : 0)) : 0;
+                                const aSize = bestAudio ? (bestAudio.filesize || bestAudio.filesize_approx || (parsed.duration ? Math.round(parsed.duration * ((bestAudio.abr || 128) * 1000 / 8)) : 0)) : 0;
+                                totalSize = vSize + aSize;
                             }
                         }
 
